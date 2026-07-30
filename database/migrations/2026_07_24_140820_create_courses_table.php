@@ -9,10 +9,33 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
+    public function up(): void {
         Schema::create('courses', function (Blueprint $table) {
+
             $table->id();
+
+            $table->foreignId('mentor_id')
+                    ->constrained('users')
+                    ->restrictOnDelete();
+
+            $table->foreignId('category_id')
+                    ->constrained('categories')
+                    ->restrictOnDelete();
+
+            $table->string('title');
+
+            $table->string('slug')->unique();
+
+            $table->text('description');
+
+            $table->string('thumbnail')->nullable();
+
+            $table->enum('status', [
+                'Draft',
+                'Published',
+                'Archived'
+            ])->default('Draft');
+
             $table->timestamps();
         });
     }

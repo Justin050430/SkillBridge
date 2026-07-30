@@ -9,11 +9,33 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
+    public function up(): void {
         Schema::create('progress', function (Blueprint $table) {
+
             $table->id();
+
+            $table->foreignId('enrollment_id')
+                    ->constrained('enrollments')
+                    ->cascadeOnDelete();
+
+            $table->foreignId('lesson_id')
+                    ->constrained('lessons')
+                    ->cascadeOnDelete();
+
+            $table->enum('status', [
+                'Not Started',
+                'In Progress',
+                'Completed'
+            ])->default('Not Started');
+
+            $table->timestamp('completed_at')->nullable();
+
             $table->timestamps();
+
+            $table->unique([
+                'enrollment_id',
+                'lesson_id'
+            ]);
         });
     }
 
