@@ -53,4 +53,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class);
     }
+    
+    public function isAdmin(): bool {
+        return $this->role->role_name === 'Admin';
+    }
+
+    public function isMentor(): bool {
+        return $this->role->role_name === 'Mentor';
+    }
+
+    public function isStudent(): bool {
+        return $this->role->role_name === 'Student';
+    }
 }
