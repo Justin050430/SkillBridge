@@ -1,4 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Projects/SkillBridge/.env</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/0001_01_01_000000_create_users_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/0000_01_01_000000_create_roles_table.php.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140816_create_categories_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140820_create_courses_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140824_create_lessons_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140830_create_assessments_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140835_create_questions_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140838_create_enrollments_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140842_create_progress_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_140847_create_notifications_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_144508_create_assessment_attempts_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/migrations/2026_07_24_144529_create_student_answers_table.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/welcome.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Role.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/User.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Category.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Course.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Lesson.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Assessment.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Question.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Enrollment.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Progress.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/AssessmentAttempt.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/StudentAnswer.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Models/Notification.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/seeders/RoleSeeder.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/seeders/CategorySeeder.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/seeders/DatabaseSeeder.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/auth/register.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Http/Controllers/Auth/RegisteredUserController.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Http/Controllers/Admin/DashboardController.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Http/Controllers/Mentor/DashboardController.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Http/Controllers/Student/DashboardController.php</file>
+            <file>file:/C:/Projects/SkillBridge/routes/web.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/student/dashboard.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/dashboard.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/mentor/dashboard.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/admin/dashboard.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/layouts/navigation.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/layouts/app.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/resources/views/components/application-logo.blade.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Http/Controllers/Auth/AuthenticatedSessionController.php</file>
+            <file>file:/C:/Projects/SkillBridge/app/Http/Middleware/RoleMiddleware.php</file>
+            <file>file:/C:/Projects/SkillBridge/bootstrap/app.php</file>
+            <file>file:/C:/Projects/SkillBridge/database/seeders/AdminSeeder.php</file>
+        </group>
+    </open-files>
 </project-private>
