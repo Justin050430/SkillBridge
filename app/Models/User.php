@@ -65,4 +65,28 @@ class User extends Authenticatable
     public function isStudent(): bool {
         return $this->role->role_name === 'Student';
     }
+    
+    public function scopeStudents($query) {
+        return $query->whereHas('role', function ($q) {
+                    $q->where('role_name', 'Student');
+                });
+    }
+
+    public function scopeMentors($query) {
+        return $query->whereHas('role', function ($q) {
+                    $q->where('role_name', 'Mentor');
+                });
+    }
+
+    public function scopeAdmins($query) {
+        return $query->whereHas('role', function ($q) {
+                    $q->where('role_name', 'Admin');
+                });
+    }
+    
+    public function scopeRole($query, string $role) {
+        return $query->whereHas('role', function ($q) use ($role) {
+                    $q->where('role_name', $role);
+                });
+    }
 }
