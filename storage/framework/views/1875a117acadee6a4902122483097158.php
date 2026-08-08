@@ -74,6 +74,26 @@
 
             </select>
 
+            <select
+                name="status"
+                onchange="this.form.submit()"
+                class="rounded-lg border-gray-300">
+
+                <?php $__currentLoopData = ['Active', 'Inactive', 'Deleted', 'All']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                <option
+                    value="<?php echo e($option); ?>"
+                    <?php if(($status ?? 'Active') === $option): echo 'selected'; endif; ?>>
+
+                    <?php echo e($option === 'All' ? 'All Statuses' : $option); ?>
+
+
+                </option>
+
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+            </select>
+
         </form>
 
         <a
@@ -95,6 +115,7 @@
                 <th class="text-left p-4">Name</th>
                 <th class="text-left p-4">Email</th>
                 <th class="text-left p-4">Role</th>
+                <th class="text-left p-4">Status</th>
                 <th class="text-center p-4">Action</th>
 
             </tr>
@@ -136,6 +157,23 @@
 
                 </td>
 
+                <td class="p-4">
+
+                    <?php
+                    $statusBadge = match($user->status) {
+                    'Inactive' => 'bg-amber-100 text-amber-700',
+                    'Deleted' => 'bg-red-100 text-red-700',
+                    default => 'bg-emerald-100 text-emerald-700',
+                    };
+                    ?>
+
+                    <span class="px-3 py-1 rounded-full text-sm font-medium <?php echo e($statusBadge); ?>">
+                        <?php echo e($user->status); ?>
+
+                    </span>
+
+                </td>
+
                 <td class="p-4 text-center">
 
                     <div class="flex justify-center gap-2">
@@ -148,13 +186,17 @@
 
                         </a>
 
+                        <?php if($user->status !== 'Deleted'): ?>
+
                         <a
                             href="<?php echo e(route('admin.users.delete',$user)); ?>"
                             class="px-3 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100">
 
-                            Delete
+                            Deactivate
 
                         </a>
+
+                        <?php endif; ?>
 
                     </div>
 
@@ -168,7 +210,7 @@
 
             <tr>
 
-                <td colspan="4" class="py-16 text-center">
+                <td colspan="5" class="py-16 text-center">
 
                     <div class="text-6xl mb-4">
                         👥

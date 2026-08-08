@@ -6,6 +6,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreQuestionRequest;
+use App\Http\Requests\UpdateQuestionRequest;
 use App\Models\Assessment;
 use App\Models\Question;
 use App\Models\User;
@@ -46,11 +48,11 @@ class QuestionController extends Controller
         return view('assessments.questions.create', compact('assessment', 'nextOrder'));
     }
 
-    public function store(Request $request, Assessment $assessment)
+    public function store(StoreQuestionRequest $request, Assessment $assessment)
     {
         $this->ensureAccessible($assessment);
 
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
 
         $data = $this->withCorrectAnswer($validated, $request);
 
@@ -69,12 +71,12 @@ class QuestionController extends Controller
         return view('assessments.questions.edit', compact('assessment', 'question'));
     }
 
-    public function update(Request $request, Assessment $assessment, Question $question)
+    public function update(UpdateQuestionRequest $request, Assessment $assessment, Question $question)
     {
         $this->ensureAccessible($assessment);
         $this->ensureBelongsToAssessment($assessment, $question);
 
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
 
         $data = $this->withCorrectAnswer($validated, $request);
 
@@ -95,31 +97,6 @@ class QuestionController extends Controller
         return redirect()
             ->route('assessments.questions.index', $assessment)
             ->with('success', 'Question deleted successfully.');
-    }
-
-    /**
-     * Validation rules for creating / updating a question.
-     *
-     * The correct answer is captured from a type-specific field
-     * (correct_answer_mcq / correct_answer_tf / correct_answer_short)
-     * and normalised into the question's correct_answer column.
-     */
-    protected function rules(): array
-    {
-        return [
-            'question_text' => 'required|string',
-            'question_type' => 'required|in:MCQ,TrueFalse,ShortAnswer',
-            'option_a' => 'nullable|string',
-            'option_b' => 'nullable|string',
-            'option_c' => 'nullable|string',
-            'option_d' => 'nullable|string',
-            'correct_answer_mcq' => 'nullable|required_if:question_type,MCQ|string|max:255',
-            'correct_answer_tf' => 'nullable|required_if:question_type,TrueFalse|string|max:255',
-            'correct_answer_short' => 'nullable|required_if:question_type,ShortAnswer|string|max:255',
-            'explanation' => 'nullable|string',
-            'marks' => 'required|integer|min:1|max:100',
-            'order_number' => 'required|integer|min:1',
-        ];
     }
 
     /**

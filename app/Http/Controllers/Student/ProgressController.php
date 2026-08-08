@@ -7,6 +7,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateProgressRequest;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\Progress;
@@ -36,7 +37,7 @@ class ProgressController extends Controller
     /**
      * Mark a lesson as In Progress or Completed (student must be enrolled).
      */
-    public function update(Request $request, Lesson $lesson)
+    public function update(UpdateProgressRequest $request, Lesson $lesson)
     {
         $enrollment = Enrollment::where('student_id', Auth::id())
             ->where('course_id', $lesson->course_id)
@@ -45,9 +46,7 @@ class ProgressController extends Controller
 
         abort_unless($enrollment, 403, 'You are not enrolled in this course.');
 
-        $status = $request->input('status');
-
-        abort_unless(in_array($status, ['In Progress', 'Completed'], true), 422);
+        $status = $request->validated('status');
 
         Progress::updateOrCreate(
             ['enrollment_id' => $enrollment->id, 'lesson_id' => $lesson->id],

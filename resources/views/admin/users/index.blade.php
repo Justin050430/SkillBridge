@@ -43,6 +43,25 @@
 
             </select>
 
+            <select
+                name="status"
+                onchange="this.form.submit()"
+                class="rounded-lg border-gray-300">
+
+                @foreach(['Active', 'Inactive', 'Deleted', 'All'] as $option)
+
+                <option
+                    value="{{ $option }}"
+                    @selected(($status ?? 'Active') === $option)>
+
+                    {{ $option === 'All' ? 'All Statuses' : $option }}
+
+                </option>
+
+                @endforeach
+
+            </select>
+
         </form>
 
         <a
@@ -64,6 +83,7 @@
                 <th class="text-left p-4">Name</th>
                 <th class="text-left p-4">Email</th>
                 <th class="text-left p-4">Role</th>
+                <th class="text-left p-4">Status</th>
                 <th class="text-center p-4">Action</th>
 
             </tr>
@@ -102,6 +122,22 @@
 
                 </td>
 
+                <td class="p-4">
+
+                    @php
+                    $statusBadge = match($user->status) {
+                    'Inactive' => 'bg-amber-100 text-amber-700',
+                    'Deleted' => 'bg-red-100 text-red-700',
+                    default => 'bg-emerald-100 text-emerald-700',
+                    };
+                    @endphp
+
+                    <span class="px-3 py-1 rounded-full text-sm font-medium {{ $statusBadge }}">
+                        {{ $user->status }}
+                    </span>
+
+                </td>
+
                 <td class="p-4 text-center">
 
                     <div class="flex justify-center gap-2">
@@ -114,13 +150,17 @@
 
                         </a>
 
+                        @if($user->status !== 'Deleted')
+
                         <a
                             href="{{ route('admin.users.delete',$user) }}"
                             class="px-3 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100">
 
-                            Delete
+                            Deactivate
 
                         </a>
+
+                        @endif
 
                     </div>
 
@@ -134,7 +174,7 @@
 
             <tr>
 
-                <td colspan="4" class="py-16 text-center">
+                <td colspan="5" class="py-16 text-center">
 
                     <div class="text-6xl mb-4">
                         👥

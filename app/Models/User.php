@@ -19,6 +19,7 @@ class User extends Authenticatable
         'email',
         'password',
         'profile_picture',
+        'status',
     ];
 
     protected $hidden = [
@@ -64,6 +65,30 @@ class User extends Authenticatable
 
     public function isStudent(): bool {
         return $this->role->role_name === 'Student';
+    }
+
+    public function isActive(): bool {
+        return $this->status === 'Active';
+    }
+
+    public function isInactive(): bool {
+        return $this->status === 'Inactive';
+    }
+
+    public function isDeleted(): bool {
+        return $this->status === 'Deleted';
+    }
+
+    public function scopeActive($query) {
+        return $query->where('status', 'Active');
+    }
+
+    public function scopeInactive($query) {
+        return $query->where('status', 'Inactive');
+    }
+
+    public function scopeDeleted($query) {
+        return $query->where('status', 'Deleted');
     }
     
     public function scopeStudents($query) {

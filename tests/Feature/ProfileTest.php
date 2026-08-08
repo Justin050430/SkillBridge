@@ -79,7 +79,10 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+
+        // Status-based soft deletion: the record and its data are preserved,
+        // but the account can no longer sign in.
+        $this->assertSame('Deleted', $user->fresh()->status);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void

@@ -1,16 +1,16 @@
-<?php $__env->startSection('title', 'Delete User'); ?>
+<?php $__env->startSection('title', 'Deactivate User'); ?>
 
 <?php $__env->startSection('header'); ?>
 <?php if (isset($component)) { $__componentOriginal91a231a9270579fa1ae9246bd51fb785 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal91a231a9270579fa1ae9246bd51fb785 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.page-header','data' => ['title' => 'Delete User','subtitle' => 'This action cannot be undone.']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.page-header','data' => ['title' => 'Deactivate User','subtitle' => 'Deactivate the account without deleting its data.']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('ui.page-header'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['title' => 'Delete User','subtitle' => 'This action cannot be undone.']); ?>
+<?php $component->withAttributes(['title' => 'Deactivate User','subtitle' => 'Deactivate the account without deleting its data.']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal91a231a9270579fa1ae9246bd51fb785)): ?>
@@ -34,12 +34,14 @@
         </h2>
 
         <p class="mt-4 text-slate-600">
-            You are about to delete
+            You are about to deactivate
             <strong><?php echo e($user->first_name); ?> <?php echo e($user->last_name); ?></strong>.
         </p>
 
         <p class="mt-2 text-slate-500">
-            This action cannot be undone.
+            The account will be marked as <strong>Deleted</strong> and can no
+            longer sign in. The record, its ID and all historical data are
+            preserved and can be reviewed using the status filter.
         </p>
 
         <form
@@ -62,7 +64,7 @@
                 type="submit"
                 class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white">
 
-                Delete User
+                Deactivate User
 
             </button>
 

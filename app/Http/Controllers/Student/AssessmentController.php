@@ -7,6 +7,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SubmitAssessmentRequest;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\Enrollment;
@@ -17,7 +18,6 @@ use App\Patterns\Observer\Observers\NotificationDispatchObserver;
 use App\Patterns\Observer\Observers\ProgressUpdater;
 use App\Patterns\Observer\Observers\SubmissionLogger;
 use App\Services\CourseApiClient;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AssessmentController extends Controller
@@ -144,7 +144,7 @@ class AssessmentController extends Controller
         return view('student.assessments.take', compact('assessment', 'questions', 'attempt'));
     }
 
-    public function submit(Request $request, Assessment $assessment)
+    public function submit(SubmitAssessmentRequest $request, Assessment $assessment)
     {
         $this->ensureEnrolled($assessment);
 
@@ -162,7 +162,7 @@ class AssessmentController extends Controller
             ->orderBy('order_number')
             ->get();
 
-        $submitted = $request->input('answers', []);
+        $submitted = $request->validated('answers') ?? [];
         $score = 0;
         $totalMarks = 0;
 

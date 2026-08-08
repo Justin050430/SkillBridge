@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Http\Request;
@@ -12,6 +14,14 @@ class UserController extends Controller
 {
     public function index(Request $request) {
         $query = User::with('role');
+
+        // The normal user listing shows Active users only. Admins can opt in
+        // to view Inactive or Deleted users via the status filter.
+        $status = $request->filled('status') ? $request->status : 'Active';
+
+        if ($status !== 'All') {
+            $query->where('status', $status);
+        }
 
         if ($request->filled('search')) {
 
@@ -41,7 +51,7 @@ class UserController extends Controller
 
         $roles = Role::orderBy('role_name')->get();
 
-        return view('admin.users.index', compact('users', 'roles'));
+        return view('admin.users.index', compact('users', 'roles', 'status'));
     }
 
     public function create() {
@@ -50,14 +60,8 @@ class UserController extends Controller
         return view('admin.users.create', compact('roles'));
     }
 
-    public function store(Request $request) {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'role_id' => 'required|exists:roles,id',
-            'password' => 'required|confirmed|min:8',
-        ]);
+    public function store(StoreUserRequest $request) {
+        $validated = $request->validated();
 
         User::create([
             'role_id' => $validated['role_id'],
@@ -65,6 +69,7 @@ class UserController extends Controller
             'last_name' => $validated['last_name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'status' => 'Active',
         ]);
 
         return redirect()
@@ -78,19 +83,18 @@ class UserController extends Controller
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
-    public function update(Request $request, User $user) {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'role_id' => 'required|exists:roles,id',
-            'password' => 'nullable|confirmed|min:8',
-        ]);
+    public function update(UpdateUserRequest $request, User $user) {
+        $validated = $request->validated();
 
         $user->first_name = $validated['first_name'];
         $user->last_name = $validated['last_name'];
         $user->email = $validated['email'];
         $user->role_id = $validated['role_id'];
+
+        // Allow admins to activate/deactivate a user without deleting them.
+        if (isset($validated['status'])) {
+            $user->status = $validated['status'];
+        }
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
@@ -116,9 +120,9 @@ class UserController extends Controller
                             ->with('error', 'You cannot delete your own account.');
         }
 
-        // Prevent deleting the last Admin
+        // Prevent deleting the last Active Admin (deleted admins no longer count).
         if (
-                $user->role->role_name === 'Admin' && User::admins()->count() === 1
+                $user->role->role_name === 'Admin' && User::admins()->active()->count() === 1
         ) {
 
             return redirect()
@@ -126,10 +130,13 @@ class UserController extends Controller
                             ->with('warning', 'The last Admin cannot be deleted.');
         }
 
-        $user->delete();
+        // Status-based soft deletion: the record, its IDs and all historical
+        // relationships are preserved, but the user can no longer authenticate
+        // and no longer appears in the active user listing.
+        $user->update(['status' => 'Deleted']);
 
         return redirect()
                         ->route('admin.users')
-                        ->with('success', 'User deleted successfully.');
+                        ->with('success', 'User deleted successfully. The account has been deactivated.');
     }
 }

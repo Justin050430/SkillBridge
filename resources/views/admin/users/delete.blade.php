@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Delete User')
+@section('title', 'Deactivate User')
 
 @section('header')
 <x-ui.page-header
-    title="Delete User"
-    subtitle="This action cannot be undone." />
+    title="Deactivate User"
+    subtitle="Deactivate the account without deleting its data." />
 @endsection
 
 @section('content')
@@ -19,12 +19,14 @@
         </h2>
 
         <p class="mt-4 text-slate-600">
-            You are about to delete
+            You are about to deactivate
             <strong>{{ $user->first_name }} {{ $user->last_name }}</strong>.
         </p>
 
         <p class="mt-2 text-slate-500">
-            This action cannot be undone.
+            The account will be marked as <strong>Deleted</strong> and can no
+            longer sign in. The record, its ID and all historical data are
+            preserved and can be reviewed using the status filter.
         </p>
 
         <form
@@ -47,7 +49,7 @@
                 type="submit"
                 class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white">
 
-                Delete User
+                Deactivate User
 
             </button>
 

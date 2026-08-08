@@ -6,10 +6,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAssessmentRequest;
+use App\Http\Requests\UpdateAssessmentRequest;
 use App\Models\Assessment;
 use App\Models\Lesson;
 use App\Models\User;
-use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -106,9 +107,9 @@ class AssessmentController extends Controller
         return view('assessments.create', compact('lessons'));
     }
 
-    public function store(Request $request)
+    public function store(StoreAssessmentRequest $request)
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
 
         Assessment::create($validated);
 
@@ -126,11 +127,11 @@ class AssessmentController extends Controller
         return view('assessments.edit', compact('assessment', 'lessons'));
     }
 
-    public function update(Request $request, Assessment $assessment)
+    public function update(UpdateAssessmentRequest $request, Assessment $assessment)
     {
         $this->ensureAccessible($assessment);
 
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
 
         $assessment->update($validated);
 
@@ -157,40 +158,6 @@ class AssessmentController extends Controller
         return redirect()
             ->route('assessments.index')
             ->with('success', 'Assessment deleted successfully.');
-    }
-
-    /**
-     * Validation rules for creating / updating an assessment.
-     */
-    protected function rules(): array
-    {
-        return [
-            'lesson_id' => ['required', 'exists:lessons,id', $this->lessonAccessRule()],
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'passing_score' => 'required|integer|min:0|max:100',
-            'time_limit' => 'nullable|integer|min:1|max:600',
-            'max_attempts' => 'nullable|integer|min:1|max:10',
-            'status' => 'required|in:Draft,Published',
-        ];
-    }
-
-    /**
-     * Mentors may only attach assessments to lessons inside their own courses.
-     */
-    protected function lessonAccessRule(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            if (!$this->currentUser()->isMentor()) {
-                return;
-            }
-
-            $lesson = Lesson::with('course')->find($value);
-
-            if (!$lesson || (int) $lesson->course->mentor_id !== (int) Auth::id()) {
-                $fail('You can only attach assessments to lessons in your own courses.');
-            }
-        };
     }
 
     /**

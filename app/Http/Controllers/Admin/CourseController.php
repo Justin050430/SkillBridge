@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Builders\CourseBuilder;
+use App\Http\Requests\StoreCourseRequest;
+use App\Http\Requests\UpdateCourseRequest;
 use App\Models\Category;
 use App\Models\Course;
 use App\Models\User;
@@ -54,9 +56,9 @@ class CourseController extends Controller
         return view('admin.courses.create', compact('mentors', 'categories'));
     }
 
-    public function store(Request $request)
+    public function store(StoreCourseRequest $request)
     {
-        $validated = $this->validatedCourse($request);
+        $validated = $request->validated();
 
         $course = (new CourseBuilder())
             ->withMentorId($validated['mentor_id'])
@@ -86,9 +88,9 @@ class CourseController extends Controller
         return view('admin.courses.edit', compact('course', 'mentors', 'categories'));
     }
 
-    public function update(Request $request, Course $course)
+    public function update(UpdateCourseRequest $request, Course $course)
     {
-        $validated = $this->validatedCourse($request);
+        $validated = $request->validated();
 
         $course->update($validated);
 
@@ -117,25 +119,5 @@ class CourseController extends Controller
         return redirect()
             ->route('admin.courses')
             ->with('success', 'Course deleted successfully.');
-    }
-
-    private function validatedCourse(Request $request): array
-    {
-        return $request->validate([
-            'mentor_id' => [
-                'required',
-                'exists:users,id',
-                function (string $attribute, mixed $value, \Closure $fail) {
-                    if (!User::mentors()->whereKey($value)->exists()) {
-                        $fail('The selected mentor is invalid.');
-                    }
-                },
-            ],
-            'category_id' => 'required|exists:categories,id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'thumbnail' => 'nullable|string|max:255',
-            'status' => 'required|in:Draft,Published,Archived',
-        ]);
     }
 }

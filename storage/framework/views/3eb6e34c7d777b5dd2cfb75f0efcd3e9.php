@@ -6,7 +6,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            <?php echo e(__('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.')); ?>
+            <?php echo e(__('Your account will be deactivated and you will no longer be able to sign in. Your record and its historical data are preserved.')); ?>
 
         </p>
     </header>
@@ -46,12 +46,12 @@
             <?php echo method_field('delete'); ?>
 
             <h2 class="text-lg font-medium text-gray-900">
-                <?php echo e(__('Are you sure you want to delete your account?')); ?>
+                <?php echo e(__('Are you sure you want to deactivate your account?')); ?>
 
             </h2>
 
             <p class="mt-1 text-sm text-gray-600">
-                <?php echo e(__('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.')); ?>
+                <?php echo e(__('Your account will be deactivated and you will no longer be able to sign in. Please enter your password to confirm.')); ?>
 
             </p>
 

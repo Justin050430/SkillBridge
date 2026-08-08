@@ -39,6 +39,9 @@ class ProfileController extends Controller
 
     /**
      * Delete the user's account.
+     *
+     * Uses status-based soft deletion so the record and its historical
+     * relationships are preserved, but the account can no longer sign in.
      */
     public function destroy(Request $request): RedirectResponse
     {
@@ -50,7 +53,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        $user->update(['status' => 'Deleted']);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

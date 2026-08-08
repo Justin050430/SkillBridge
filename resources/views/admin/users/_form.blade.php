@@ -122,6 +122,41 @@
 
     </div>
 
+    <!-- Status (edit only - new accounts always start Active) -->
+    @if(isset($user))
+
+    <div>
+
+        <x-input-label
+            for="status"
+            :value="__('Status')" />
+
+        <x-input-error
+            :messages="$errors->get('status')"
+            class="mt-2" />
+
+        <select
+            name="status"
+            class="block mt-1 w-full rounded-lg border-gray-300">
+
+            @foreach(['Active', 'Inactive'] as $option)
+
+                <option
+                    value="{{ $option }}"
+                    @selected(old('status', $user->status ?? 'Active') === $option)>
+
+                    {{ $option }}
+
+                </option>
+
+            @endforeach
+
+        </select>
+
+    </div>
+
+    @endif
+
     <div></div>
 
     <!-- Password -->
