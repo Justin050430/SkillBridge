@@ -107,7 +107,7 @@ class StudentAssessmentTest extends TestCase
         $course = $this->makeCourseFor($mentor);
 
         $this->actingAs($student)
-            ->post('/student/courses/'.$course->id.'/enroll')
+            ->post('/student/courses/'.$course->slug.'/enroll')
             ->assertRedirect();
 
         $this->assertDatabaseHas('enrollments', [
@@ -125,7 +125,7 @@ class StudentAssessmentTest extends TestCase
         $this->enroll($student, $course);
 
         $this->actingAs($student)
-            ->post('/student/courses/'.$course->id.'/enroll')
+            ->post('/student/courses/'.$course->slug.'/enroll')
             ->assertRedirect();
 
         $this->assertEquals(
@@ -162,7 +162,7 @@ class StudentAssessmentTest extends TestCase
         $assessment = $this->makeAssessment($this->makeLesson($course));
 
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->id.'/take')
+            ->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertForbidden();
     }
 
@@ -192,17 +192,17 @@ class StudentAssessmentTest extends TestCase
 
         // Start the attempt (as the student would by opening the assessment).
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->id.'/take')
+            ->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertOk();
 
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->id.'/submit', [
+            ->post('/student/assessments/'.$assessment->slug.'/submit', [
                 'answers' => [
                     $q1->id => 'B',
                     $q2->id => 'False',
                 ],
             ])
-            ->assertRedirect('/student/assessments/'.$assessment->id.'/result');
+            ->assertRedirect('/student/assessments/'.$assessment->slug.'/result');
 
         $attempt = AssessmentAttempt::where('enrollment_id', $enrollment->id)
             ->where('assessment_id', $assessment->id)
@@ -244,12 +244,12 @@ class StudentAssessmentTest extends TestCase
         $this->makeQuestion($assessment);
 
         // First attempt.
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->id.'/take');
-        $this->actingAs($student)->post('/student/assessments/'.$assessment->id.'/submit', ['answers' => []]);
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
+        $this->actingAs($student)->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []]);
 
         // Second take should be blocked (redirect back to the list).
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->id.'/take')
+            ->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertRedirect('/student/assessments');
     }
 

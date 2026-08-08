@@ -140,7 +140,7 @@
                             <form
                                 x-show="!isEnrolled(course)"
                                 method="POST"
-                                :action="'/student/courses/' + course.id + '/enroll'">
+                                :action="'/student/courses/' + course.slug + '/enroll'">
 
                                 <?php echo csrf_field(); ?>
 

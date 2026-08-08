@@ -8,7 +8,6 @@ use App\Models\Category;
 use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class CourseController extends Controller
 {
@@ -63,7 +62,6 @@ class CourseController extends Controller
             ->withMentorId($validated['mentor_id'])
             ->withCategoryId($validated['category_id'])
             ->withTitle($validated['title'])
-            ->withSlug($validated['slug'])
             ->withDescription($validated['description'])
             ->withThumbnail($validated['thumbnail'] ?? null)
             ->withStatus($validated['status'])
@@ -90,7 +88,7 @@ class CourseController extends Controller
 
     public function update(Request $request, Course $course)
     {
-        $validated = $this->validatedCourse($request, $course);
+        $validated = $this->validatedCourse($request);
 
         $course->update($validated);
 
@@ -121,14 +119,8 @@ class CourseController extends Controller
             ->with('success', 'Course deleted successfully.');
     }
 
-    private function validatedCourse(Request $request, ?Course $course = null): array
+    private function validatedCourse(Request $request): array
     {
-        $slugRule = Rule::unique('courses', 'slug');
-
-        if ($course) {
-            $slugRule->ignore($course);
-        }
-
         return $request->validate([
             'mentor_id' => [
                 'required',
@@ -141,7 +133,6 @@ class CourseController extends Controller
             ],
             'category_id' => 'required|exists:categories,id',
             'title' => 'required|string|max:255',
-            'slug' => ['required', 'string', 'max:255', $slugRule],
             'description' => 'required|string',
             'thumbnail' => 'nullable|string|max:255',
             'status' => 'required|in:Draft,Published,Archived',

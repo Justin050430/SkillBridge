@@ -105,9 +105,9 @@ class NotificationModuleTest extends TestCase
             'order_number' => 1,
         ]);
 
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->id.'/take');
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->id.'/submit', ['answers' => []]);
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []]);
     }
 
     // ---- Command pattern execution ----
@@ -186,7 +186,7 @@ class NotificationModuleTest extends TestCase
         $course = $this->makeCourseFor($mentor);
 
         $this->actingAs($student)
-            ->post('/student/courses/'.$course->id.'/enroll')
+            ->post('/student/courses/'.$course->slug.'/enroll')
             ->assertRedirect();
 
         $this->assertDatabaseHas('notifications', [

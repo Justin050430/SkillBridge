@@ -55,21 +55,6 @@
     </div>
 
     <div>
-        <x-input-label for="slug" :value="__('Slug')" />
-
-        <x-text-input
-            id="slug"
-            name="slug"
-            type="text"
-            class="block mt-1 w-full"
-            :value="old('slug', $course->slug ?? '')"
-            placeholder="e.g. introduction-to-laravel"
-            required />
-
-        <x-input-error :messages="$errors->get('slug')" class="mt-2" />
-    </div>
-
-    <div class="md:col-span-2">
         <x-input-label for="description" :value="__('Description')" />
 
         <textarea

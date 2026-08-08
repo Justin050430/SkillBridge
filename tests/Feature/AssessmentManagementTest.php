@@ -119,7 +119,7 @@ class AssessmentManagementTest extends TestCase
         $assessmentB = $this->makeAssessmentFor($mentorB);
 
         $this->actingAs($mentorA)
-            ->get('/assessments/'.$assessmentB->id.'/edit')
+            ->get('/assessments/'.$assessmentB->slug.'/edit')
             ->assertForbidden();
     }
 
@@ -182,7 +182,7 @@ class AssessmentManagementTest extends TestCase
         $assessment = $this->makeAssessmentFor($this->makeUser('Mentor', 'mentor@test.com'));
 
         $this->actingAs($admin)
-            ->post('/assessments/'.$assessment->id.'/questions', [
+            ->post('/assessments/'.$assessment->slug.'/questions', [
                 'question_text' => 'Sample question?',
                 'question_type' => 'MCQ',
                 'option_a' => 'Option A',
@@ -193,7 +193,7 @@ class AssessmentManagementTest extends TestCase
                 'marks' => 2,
                 'order_number' => 1,
             ])
-            ->assertRedirect('/assessments/'.$assessment->id.'/questions');
+            ->assertRedirect('/assessments/'.$assessment->slug.'/questions');
 
         $this->assertDatabaseHas('questions', [
             'question_text' => 'Sample question?',
@@ -208,14 +208,14 @@ class AssessmentManagementTest extends TestCase
         $assessment = $this->makeAssessmentFor($this->makeUser('Mentor', 'mentor@test.com'));
 
         $this->actingAs($admin)
-            ->post('/assessments/'.$assessment->id.'/questions', [
+            ->post('/assessments/'.$assessment->slug.'/questions', [
                 'question_text' => 'True or false?',
                 'question_type' => 'TrueFalse',
                 'correct_answer_tf' => 'True',
                 'marks' => 1,
                 'order_number' => 1,
             ])
-            ->assertRedirect('/assessments/'.$assessment->id.'/questions');
+            ->assertRedirect('/assessments/'.$assessment->slug.'/questions');
 
         $this->assertDatabaseHas('questions', [
             'question_text' => 'True or false?',

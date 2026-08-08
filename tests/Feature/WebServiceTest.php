@@ -207,12 +207,12 @@ class WebServiceTest extends TestCase
             'order_number' => 1,
         ]);
 
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->id.'/take');
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->id.'/submit', ['answers' => []]);
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []]);
 
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->id.'/result')
+            ->get('/student/assessments/'.$assessment->slug.'/result')
             ->assertOk()
             ->assertSee('Explore More Courses')
             ->assertSee('Advanced Phishing Defense');

@@ -26,8 +26,8 @@ Route::middleware('auth')->get('/dashboard', function () {
     $user = Auth::user();
 
     $route = match (true) {
-        $user instanceof \App\Models\User && $user->isAdmin() => 'admin.dashboard',
-        $user instanceof \App\Models\User && $user->isMentor() => 'mentor.dashboard',
+        $user->isAdmin() => 'admin.dashboard',
+        $user->isMentor() => 'mentor.dashboard',
         default => 'student.dashboard',
     };
 
@@ -75,16 +75,16 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::post('/admin/courses', [CourseController::class, 'store'])
             ->name('admin.courses.store');
 
-    Route::get('/admin/courses/{course}/edit', [CourseController::class, 'edit'])
+    Route::get('/admin/courses/{course:slug}/edit', [CourseController::class, 'edit'])
             ->name('admin.courses.edit');
 
-    Route::put('/admin/courses/{course}', [CourseController::class, 'update'])
+    Route::put('/admin/courses/{course:slug}', [CourseController::class, 'update'])
             ->name('admin.courses.update');
 
-    Route::get('/admin/courses/{course}/delete', [CourseController::class, 'delete'])
+    Route::get('/admin/courses/{course:slug}/delete', [CourseController::class, 'delete'])
             ->name('admin.courses.delete');
 
-    Route::delete('/admin/courses/{course}', [CourseController::class, 'destroy'])
+    Route::delete('/admin/courses/{course:slug}', [CourseController::class, 'destroy'])
             ->name('admin.courses.destroy');
 });
 
@@ -101,36 +101,36 @@ Route::middleware(['auth', 'role:Admin,Mentor'])->group(function () {
     Route::post('/assessments', [AssessmentController::class, 'store'])
             ->name('assessments.store');
 
-    Route::get('/assessments/{assessment}/edit', [AssessmentController::class, 'edit'])
+    Route::get('/assessments/{assessment:slug}/edit', [AssessmentController::class, 'edit'])
             ->name('assessments.edit');
 
-    Route::put('/assessments/{assessment}', [AssessmentController::class, 'update'])
+    Route::put('/assessments/{assessment:slug}', [AssessmentController::class, 'update'])
             ->name('assessments.update');
 
-    Route::get('/assessments/{assessment}/delete', [AssessmentController::class, 'delete'])
+    Route::get('/assessments/{assessment:slug}/delete', [AssessmentController::class, 'delete'])
             ->name('assessments.delete');
 
-    Route::delete('/assessments/{assessment}', [AssessmentController::class, 'destroy'])
+    Route::delete('/assessments/{assessment:slug}', [AssessmentController::class, 'destroy'])
             ->name('assessments.destroy');
 
     // Questions nested under an assessment
 
-    Route::get('/assessments/{assessment}/questions', [QuestionController::class, 'index'])
+    Route::get('/assessments/{assessment:slug}/questions', [QuestionController::class, 'index'])
             ->name('assessments.questions.index');
 
-    Route::get('/assessments/{assessment}/questions/create', [QuestionController::class, 'create'])
+    Route::get('/assessments/{assessment:slug}/questions/create', [QuestionController::class, 'create'])
             ->name('assessments.questions.create');
 
-    Route::post('/assessments/{assessment}/questions', [QuestionController::class, 'store'])
+    Route::post('/assessments/{assessment:slug}/questions', [QuestionController::class, 'store'])
             ->name('assessments.questions.store');
 
-    Route::get('/assessments/{assessment}/questions/{question}/edit', [QuestionController::class, 'edit'])
+    Route::get('/assessments/{assessment:slug}/questions/{question}/edit', [QuestionController::class, 'edit'])
             ->name('assessments.questions.edit');
 
-    Route::put('/assessments/{assessment}/questions/{question}', [QuestionController::class, 'update'])
+    Route::put('/assessments/{assessment:slug}/questions/{question}', [QuestionController::class, 'update'])
             ->name('assessments.questions.update');
 
-    Route::delete('/assessments/{assessment}/questions/{question}', [QuestionController::class, 'destroy'])
+    Route::delete('/assessments/{assessment:slug}/questions/{question}', [QuestionController::class, 'destroy'])
             ->name('assessments.questions.destroy');
 });
 
@@ -161,7 +161,7 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     Route::get('/student/courses', [StudentCourseController::class, 'index'])
             ->name('student.courses');
 
-    Route::post('/student/courses/{course}/enroll', [StudentEnrollmentController::class, 'store'])
+    Route::post('/student/courses/{course:slug}/enroll', [StudentEnrollmentController::class, 'store'])
             ->name('student.enroll');
 
     // Assessments
@@ -169,13 +169,13 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     Route::get('/student/assessments', [StudentAssessmentController::class, 'index'])
             ->name('student.assessments.index');
 
-    Route::get('/student/assessments/{assessment}/take', [StudentAssessmentController::class, 'take'])
+    Route::get('/student/assessments/{assessment:slug}/take', [StudentAssessmentController::class, 'take'])
             ->name('student.assessments.take');
 
-    Route::post('/student/assessments/{assessment}/submit', [StudentAssessmentController::class, 'submit'])
+    Route::post('/student/assessments/{assessment:slug}/submit', [StudentAssessmentController::class, 'submit'])
             ->name('student.assessments.submit');
 
-    Route::get('/student/assessments/{assessment}/result', [StudentAssessmentController::class, 'result'])
+    Route::get('/student/assessments/{assessment:slug}/result', [StudentAssessmentController::class, 'result'])
             ->name('student.assessments.result');
 
     // Progress

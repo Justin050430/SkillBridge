@@ -130,12 +130,12 @@ class ObserverPatternTest extends TestCase
 
         $question = $this->makeQuestion($assessment, ['correct_answer' => 'A', 'marks' => 1]);
 
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->id.'/take');
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->id.'/submit', [
+            ->post('/student/assessments/'.$assessment->slug.'/submit', [
                 'answers' => [$question->id => 'A'],
             ])
-            ->assertRedirect('/student/assessments/'.$assessment->id.'/result');
+            ->assertRedirect('/student/assessments/'.$assessment->slug.'/result');
 
         // ProgressUpdater: passing completes the linked lesson.
         $this->assertDatabaseHas('progress', [
@@ -163,12 +163,12 @@ class ObserverPatternTest extends TestCase
 
         $question = $this->makeQuestion($assessment, ['correct_answer' => 'A', 'marks' => 1]);
 
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->id.'/take');
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->id.'/submit', [
+            ->post('/student/assessments/'.$assessment->slug.'/submit', [
                 'answers' => [$question->id => 'B'], // wrong -> 0% -> failed
             ])
-            ->assertRedirect('/student/assessments/'.$assessment->id.'/result');
+            ->assertRedirect('/student/assessments/'.$assessment->slug.'/result');
 
         // ProgressUpdater: a failed attempt must NOT complete the lesson.
         $this->assertDatabaseMissing('progress', [
