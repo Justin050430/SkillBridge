@@ -1,0 +1,142 @@
+--- PAGE 1 ---
+1 of 4
+BMIT3173 Integrative Programming
+ASSIGNMENT SPECIFICATION
+Introduction
+Students will work in a team comprising 4 to 5 members from the same practical class as this
+will provide an appreciation of the effects of scale that is present when creating a non-trivial
+system and how various technologies may be integrated to create a complete system. Each
+student will be individually assessed based on the quality and scope of work completed by
+him/her.
+Learning Outcomes Assessed
+CLO Description Contribution to
+Coursework
+CLO2 Construct programs that use integrative technologies (P4, 85%
+PLO3).
+CLO3 Demonstrate self-advancement through independent learning 15%
+of integrative programming technologies (A3, PLO9).
+Problem Statement
+Objective
+Students are required to select a real or hypothetical organisation whose mission, products,
+or services align with one (1) of the United Nations Sustainable Development Goals
+(SDGs) as the focus of their project. The chosen organisation has tasked your team with
+developing an innovative web-based solution that contributes to the selected SDG while
+optimizing business operations, enhancing user engagement, improving service delivery, and
+driving overall performance.
+Each team must choose one (1) SDG from the list below as the thematic focus of the project.
+The selected organisation (real or hypothetical) must have a mission, product, or service that
+meaningfully contributes to the chosen SDG. Refer to the official UN SDG portal at
+https://sdgs.un.org/goals for full descriptions of each goal and its targets.
+SDG 1: No Poverty SDG 10: Reduced Inequalities
+SDG 2: Zero Hunger SDG 11: Sustainable Cities and
+SDG 3: Good Health and Well-being Communities
+SDG 4: Quality Education SDG 12: Responsible Consumption and
+SDG 5: Gender Equality Production
+SDG 6: Clean Water and Sanitation SDG 13: Climate Action
+SDG 7: Affordable and Clean Energy SDG 14: Life Below Water
+SDG 8: Decent Work and Economic SDG 15: Life on Land
+Growth SDG 16: Peace, Justice and Strong
+SDG 9: Industry, Innovation and Institutions
+Infrastructure SDG 17: Partnerships for the Goals
+
+--- PAGE 2 ---
+2 of 4
+Examples (non-exhaustive): an NGO promoting clean water access (SDG 6); an online
+learning platform for underserved communities (SDG 4); a renewable energy services startup
+(SDG 7); a tele-health or mental health support service (SDG 3); a platform supporting
+recycling and the circular economy (SDG 12); a microfinance platform for low-income
+communities (SDG 1); a women’s career and mentorship network (SDG 5); a smart-city waste
+management system (SDG 11). Each team should select a topic whose context allows
+meaningful integration of all the technical requirements stated in the Scope of Work below.
+Scope of Work
+Initial Deliverables (Due Week 4 - Group Submission)
+1. System Description
+Provide a brief description of the system that you will be developing.
+State the chosen SDG and provide a brief justification (2–3 sentences) explaining
+how the proposed system contributes to that SDG.
+2. Analysis Class Diagram
+● Submit an analysis class diagram (including entity classes with relationships,
+excluding methods, attributes, and interfaces).
+3. Team Member Modules
+● Each team member should outline the module(s) they are responsible for,
+explaining the functions and scope of their module(s).
+Individual Responsibilities (Due to week 12):
+Each student must:
+1. Implement at least one (1) module of the system.
+2. Ensure that your module design and implementation incorporate the following
+technologies and practices:
+o PHP and MySQL
+o Design Patterns
+o Secure Coding Practices
+o Web Service Technologies
+3. The entire system must follow the Model-View-Controller (MVC) architecture, and
+you are required to use Object Relational Mapping (ORM) in your program.
+Note: Marks will be deducted if the above requirements are not strictly followed.
+4. Using a framework (e.g., Laravel, CodeIgniter) is optional, but students are
+encouraged to utilize a framework to improve the organization, scalability, and
+maintainability of their code.
+Note: Frameworks provide built-in tools and libraries that can help streamline
+development, enhance security, and speed up the process of building robust, feature-
+rich applications
+Please refer to the Assignment Rubrics for detailed assessment criteria and the allocation
+of marks.
+
+--- PAGE 3 ---
+3 of 4
+Submission Deadline
+● Sunday, 6th September 2026 (Week 12)
+○ Assignment report
+▪ Each student must prepare an individual assignment report using the provided
+document report template.
+▪ The completed AI Usage Disclosure Form (included in the report template)
+must be completed and submitted as part of the report, whether AI tools were
+used.
+▪ Include the following section of the assignment:
+o PHP and MySQL
+o Design Patterns
+o Secure Coding Practices
+o Web Service Technologies
+▪ Refer to the template for detailed instructions on each section.
+o Submission Format
+▪ Convert the report to a PDF file, rename it with your full name, and
+submit it to the Google Classroom assignment.
+○ Team source code – to be uploaded to a specified Google Drive folder. Include:
+The complete project for your application (group leader to submit).
+■
+Each file should have the author’s name included in the header comment.
+■
+The complete SQL scripts for creating the database and tables, as well as
+■
+populating the database tables with initial data.
+● You will also be required to give a demo of your completed work to your tutor during Week
+13 and 14.
+Academic Integrity and Plagiarism
+There must be originality in your work, i.e., do not copy or refer to other teams. You may only
+work with your team members(s) to solve this assignment. You must not share with or refer to
+any part of the assignment (including the code) of anyone else except your team member(s)
+and your tutor.
+Before submitting your assignment, ensure that you have complied with TAR UMT’s
+plagiarism policy. Any attempts to cheat, plagiarism, collusion, and any other attempts to gain
+an unfair advantage in the assessment will cause the students concerned to be penalized.
+Students found to be dishonest are liable to disciplinary action.
+Note on AI Usage:
+This assignment is governed by the TAR UMT Policy for the Use of Artificial Intelligence (AI)
+(PO/111:26) and is classified as YELLOW (Limited AI) under the Red–Yellow–Green
+Framework. AI tools may be used only for clearly defined support purposes such as language
+refinement of your own text, clarifying taught concepts, debugging assistance on code you
+wrote, and early brainstorming. They must not be used to generate the PHP/MySQL code,
+design-pattern implementation, class diagrams, web-service code, or the core analysis being
+assessed, nor to upload confidential or others’ personal data to public AI tools. You remain
+responsible for the accuracy and originality of your work, and the tutor may ask you to explain
+or demonstrate any part to verify authorship.
+
+--- PAGE 4 ---
+4 of 4
+AI Usage Disclosure Form (compulsory): Every student must complete and submit the AI
+Usage Disclosure Form provided in the report template, whether AI tools were used, by the
+assignment submission deadline of Sunday, 6th September 2026 (Week 12). A report
+submitted without a complete Form is treated as an incomplete submission and may not be
+marked. Where AI tools were used, each use must be listed in the Form and the tool(s) cited
+in your References in APA (7th edition) format.
+Late Submission
+Refer to TAR UMT’s Guideline on Late Submission of Coursework.

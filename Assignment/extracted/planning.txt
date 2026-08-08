@@ -1,0 +1,20 @@
+--- PAGE 1 ---
+Name Module Secure Coding Practice Design Pattern Web Service
+Provide Consume
+ZHAN ZHENG PUUAsHer Management Authentication and password management
+(1) Enforce account disabling after an established number of invalid login attempts Factory Method
+(2) If your application manages a credential store, use cryptographically strong one-way salted hashes
+ZHI FOOK CHUACourse Management Access Control
+(1) Restrict access to protected functions to only authorized users Builder
+Output Encoding
+(2) Contextually output encode all data returned to the client from untrusted sources
+GEN TECK NG Enrollment Management Access Control
+(1) Enforce authorization controls on every request, including those made by server side scripts Strategy
+(2) Use a single site-wide component to check access authorization. This includes libraries that call external authorization services
+JIAN XIN OOI Assessment & Progress Management Error handling and logging
+(1) Do not disclose sensitive information in error responses, including system details, session identifiers or account information Observer
+(2) Log all access control failures
+YIK HANG YIP Notification Module Session management
+(1) Consistently utilize HTTPS rather than switching between HTTP to HTTPS Command
+Communication security
+(2) Utilize TLS for connections to external systems that involve sensitive information or functions.

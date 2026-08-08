@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\User;
 
 class DashboardController extends Controller
@@ -13,8 +15,9 @@ class DashboardController extends Controller
 
         $totalMentors = User::mentors()->count();
 
-        $totalCourses = 0;
-        $totalEnrollments = 0;
+        $totalCourses = Course::count();
+
+        $totalEnrollments = Enrollment::count();
 
         return view('admin.dashboard', compact(
             'totalStudents',

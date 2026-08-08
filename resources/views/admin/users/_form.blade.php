@@ -128,11 +128,10 @@
     <div>
 
         <x-input-label
-            <x-input-label
-                for="password"
-                :value="isset($user)
-                ? 'Password (Leave blank to keep current password)'
-                : 'Password'" />
+            for="password"
+            :value="isset($user)
+            ? 'Password (Leave blank to keep current password)'
+            : 'Password'" />
 
         <x-text-input
             id="password"

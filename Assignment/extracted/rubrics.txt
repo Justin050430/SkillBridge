@@ -1,0 +1,83 @@
+
+=== SHEET: Marking Sheet (dims A1:H35) ===
+BMIT3173 Integrative Programming — Assignment Marking Sheet							
+Name: 				Programme / Group: 			
+HOW TO MARK: For each criterion, choose in the "Met" column: 1 = fully met, 0.5 = partially met, 0 (or blank) = not met. Partial credit is awarded automatically — the Score, Band and Weighted Score all fill in for you. Use the Reference sheet for the full band descriptors.							
+No.	Aspect	Criteria (mark how well it is met)	Max	Met	Score	Band	Weighted
+CLO 2: Construct programs that use integrative technologies (P4, PLO3).							
+1.0	PHP Web Application (20%)	System is functional and clearly addresses the chosen problem/SDG	2.0		0	Weak	0
+		Correct, appropriate use of core PHP features (forms, sessions, DB access)	2.0				
+		Code is well-structured and reasonably efficient (no major redundancy)	2.0				
+		Follows good coding standards & MVC organisation	2.0				
+		Demonstrates advanced features / robustness / maintainability	2.0				
+2.0	Design Patterns (25%)	Design pattern is clearly and accurately described	2.0		0	Weak	0
+		Class diagram provided and correctly shows the pattern's structure	2.0				
+		Code correctly implements the pattern (not just named)	3.0				
+		Pattern is integrated into the system & solves a real problem	2.0				
+		Clear, well-reasoned justification for choosing the pattern	1.0				
+3.0	Secure Coding Practices (20%)	Two (2) distinct threats/attacks identified	3.0		0	Weak	0
+		Each threat is clearly and accurately described	2.0				
+		A secure coding practice is given for each threat	3.0				
+		Practices are explained in detail and clearly linked to the threats	2.0				
+4.0	Web Services (20%)	Service exposure is implemented and functional	2.0		0	Weak	0
+		Service consumption is implemented and functional	2.0				
+		Bidirectional communication between modules works	2.0				
+		IFA (request/response, timestamp/requestID, status) followed correctly	2.0				
+		Robust / optimised / handles multiple scenarios reliably	2.0				
+CLO 3: Demonstrate self-advancement through independent learning of integrative programming technologies (A3, PLO9).							
+5.0	Personal Skills (evidenced from the report)  (15%)	Report shows independent learning beyond taught material (extra tools/techniques researched & applied)	3.0		0	Weak	0
+		References show genuine self-research; cited correctly in APA 7th	2.0				
+		Report is complete — all required deliverables/sections present	2.0				
+		Professional presentation: clear writing, labelled figures, consistent formatting	2.0				
+		Reflection / explanation shows depth of understanding, not just description	1.0				
+TOTAL  / 100							0
+** 15 marks deducted from the total if the student fails to implement ORM and MVC as required.							
+Band guide:  Weak = 0–4   |   Moderate = 5–6   |   Good = 7–8   |   Excellent = 9–10							
+Met column:  1 = fully met   |   0.5 = partially met   |   0 or blank = not met.							
+
+=== SHEET: Rubric (Reference) (dims A1:L220) ===
+BMIT3173 Integrative Programming - Assignment Rubrics								Name: 			
+Programme/Group: 											
+No.	Aspect	0-4 marks	5-6 marks	7-8 marks	9-10 marks	Score	Weightage	Remarks		Weighted Score	
+CLO 2: Construct programs that use integrative technologies (P4, PLO3).											
+1.0	PHP Web Application	Implementation of the system demonstrates a beginner level in PHP web application development, with limited understanding and basic implementation of PHP features and concepts.The implementation not related with the mentioned problem.	Implementation of the system demonstrates an acceptable level in PHP web application development, showing adequate use of PHP features and basic functionality, though with some room for improvement in efficiency and structure. The implementation shows the basic resolution of the mentioned problem.	Implementation of the system demonstrates a moderate level of competence in PHP web application development. It shows proficient use of PHP features, efficient coding practices, and effective implementation of functionalities, contributing to a well-structured application. The implementation shows the moderate level  resolution of the mentioned problem.	The system implementation demonstrates a high level of proficiency in PHP web application development. It reflects mastery in utilizing advanced PHP features, adhering to best practices in coding standards and architectural design, and ensuring optimal performance, scalability, and maintainability. The implementation effectively addresses the identified problem through a proficient and well-structured technical solution.		2.0			0	
+2	Design Patterns
+ 	Description: No clear explanation of the design pattern or inaccurate description.
+
+Implementation & Coding: No class diagram, poorly drawn, or lacks clarity. The code implementation is incomplete or incorrect, failing to demonstrate the design pattern.
+
+Justification: No or weak justification for choosing the design pattern.	Description: Basic description of the design pattern, but lacks detail.
+
+Implementation & Coding: Class diagram provided but may lack key elements or clarity. Code implementation is partially correct or lacks necessary components to fully demonstrate the design pattern.
+
+Justification: A brief justification, but lacks depth or clear reasoning.	Description: Clear and detailed description of the design pattern implemented.
+
+Implementation & Coding: Class diagram clearly shows the pattern with relevant components. Code implementation demonstrates the design pattern with relevant features and structure.
+
+Justification: Good justification for the design pattern choice with clear reasoning.	Description: Thorough and in-depth description of the design pattern, demonstrating a strong understanding.
+
+Implementation & Coding: Well-organized and accurate class diagram, clearly showing relationships and implementation of the design pattern. Clean, well-structured code that correctly implements the design pattern within the system, demonstrating integration and solving relevant problems.
+
+Justification: Detailed, thoughtful justification explaining why the design pattern was chosen and its benefits for the module.		2.5			0	
+3	Secure Coding Practices	Threats: Only one threat or vague description; lacks clarity.
+
+Secure Coding: Minimal or no explanation of practices; weak connection to attacks.
+
+	Threats: Two threats identified but lacking depth or clarity.
+
+Secure Coding: Basic practices mentioned but not fully explained or linked to threats.
+
+	Threats: Two threats identified with adequate descriptions.
+
+Secure Coding: Practices explained and linked to threats, but some detail or depth is missing.	Threats: Two threats identified with clear descriptions.
+
+Secure Coding: Practices explained clearly with good links to threats.
+
+		2.0			0	
+4	Web Services	Implementation of the web service exposure and consumption is attempted but remains non-functional. Only minimal setup or basic requirements are present, with no successful communication between modules.	Either the exposure or consumption component of the web service is properly configured and functioning according to basic requirements. However, the implementation lacks completeness, optimization, or bidirectional communication between modules.	The web service (exposure and consumption) integrates well between modules with good functionality and stable data exchange. It aligns with the system’s business processes and meets most functional needs but may lack advanced features or optimization.	The implementation is robust, optimized, and includes all advanced features required for operational efficiency. The web service integrates seamlessly across modules and external systems, handling various scenarios effectively with high performance, scalability, and reliability.		2.0			0	
+CLO 3: Demonstrate self-advancement through independent learning of integrative programming technologies (A3, PLO9).											
+5.0	Personal Skills	Student demonstrated a low level of independent learning toward the completion of the assignment.	Student demonstrated an acceptable level of independent learning toward the completion of the assignment.	Student demonstrated a moderate level of independent learning toward the completion of the assignment.	Student demonstrated a high level of independent learning toward the completion of the assignment.		1.5			0	
+Note:								Total / 100		0	
+Personal skills: independent learning, intellectual and self-development; confidence, self-control, social skills, proper etiquette and commitment to professionalism. Includes character values such as honesty, punctuality, time management as well as keeping to and maintaining deadlines.											
+Practical skills: competence and professional practice in planning (including study & research), design and implementation of technology. 											
+** 15 marks will be deducted from the total assignment grade if the student fails to implement ORM (Object-Relational Mapping) and MVC (Model-View-Controller) as required.											

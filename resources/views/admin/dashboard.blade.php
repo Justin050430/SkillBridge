@@ -83,12 +83,21 @@
 
             </a>
 
-            <button
-                class="w-full bg-slate-100 hover:bg-slate-200 py-3 rounded-xl transition">
+            <a
+                href="{{ route('admin.courses.create') }}"
+                class="block w-full bg-slate-100 hover:bg-slate-200 text-center py-3 rounded-xl transition">
 
                 Add Course
 
-            </button>
+            </a>
+
+            <a
+                href="{{ route('assessments.index') }}"
+                class="block w-full bg-slate-100 hover:bg-slate-200 text-center py-3 rounded-xl transition">
+
+                Manage Assessments
+
+            </a>
 
             <button
                 class="w-full bg-slate-100 hover:bg-slate-200 py-3 rounded-xl transition">

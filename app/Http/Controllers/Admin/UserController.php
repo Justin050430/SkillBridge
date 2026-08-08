@@ -118,7 +118,7 @@ class UserController extends Controller
 
         // Prevent deleting the last Admin
         if (
-                $user->role->role_name === 'Admin' && User::admins()->count()
+                $user->role->role_name === 'Admin' && User::admins()->count() === 1
         ) {
 
             return redirect()

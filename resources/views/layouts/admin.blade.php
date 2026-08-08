@@ -17,6 +17,8 @@
     <!-- Sidebar -->
     <x-ui.sidebar>
 
+        @if(Auth::user()->isAdmin())
+
         <x-ui.sidebar-item
             :href="route('admin.dashboard')"
             :active="request()->routeIs('admin.dashboard')">
@@ -34,6 +36,50 @@
             <x-heroicon-o-users class="w-5 h-5"/>
 
             User Management
+
+        </x-ui.sidebar-item>
+
+        <x-ui.sidebar-item
+            :href="route('admin.courses')"
+            :active="request()->routeIs('admin.courses')">
+
+            <x-heroicon-o-book-open class="w-5 h-5"/>
+
+            Course Management
+
+        </x-ui.sidebar-item>
+
+        @elseif(Auth::user()->isMentor())
+
+        <x-ui.sidebar-item
+            :href="route('mentor.dashboard')"
+            :active="request()->routeIs('mentor.dashboard')">
+
+            <x-heroicon-o-home class="w-5 h-5"/>
+
+            Dashboard
+
+        </x-ui.sidebar-item>
+
+        @endif
+
+        <x-ui.sidebar-item
+            :href="route('assessments.index')"
+            :active="request()->routeIs('assessments.*')">
+
+            <x-heroicon-o-clipboard-document-list class="w-5 h-5"/>
+
+            Assessment Management
+
+        </x-ui.sidebar-item>
+
+        <x-ui.sidebar-item
+            :href="route('enrollments.index')"
+            :active="request()->routeIs('enrollments.*')">
+
+            <x-heroicon-o-user-group class="w-5 h-5"/>
+
+            Enrollment Management
 
         </x-ui.sidebar-item>
 
