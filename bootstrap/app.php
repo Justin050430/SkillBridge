@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
                         'role' => \App\Http\Middleware\RoleMiddleware::class,
                     ]);
+
+        // Production-only HTTPS enforcement (no-op in local development).
+        $middleware->prepend(\App\Http\Middleware\EnsureSecureConnection::class);
                 })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Secure coding: log every access-control failure (audit trail).

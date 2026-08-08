@@ -13,6 +13,7 @@ use App\Models\Enrollment;
 use App\Models\Question;
 use App\Models\StudentAnswer;
 use App\Patterns\Observer\AssessmentSubmission;
+use App\Patterns\Observer\Observers\NotificationDispatchObserver;
 use App\Patterns\Observer\Observers\ProgressUpdater;
 use App\Patterns\Observer\Observers\SubmissionLogger;
 use App\Services\CourseApiClient;
@@ -197,10 +198,12 @@ class AssessmentController extends Controller
 
         // Publish the graded submission to registered observers
         // (GoF Observer pattern). Observers react to the state change, e.g.
-        // updating lesson progress and writing an audit log entry.
+        // updating lesson progress, writing an audit log entry, and
+        // dispatching notification commands (Command pattern).
         $submission = new AssessmentSubmission($attempt, $assessment);
         $submission->attach(new ProgressUpdater());
         $submission->attach(new SubmissionLogger());
+        $submission->attach(new NotificationDispatchObserver());
         $submission->notify();
 
         return redirect()

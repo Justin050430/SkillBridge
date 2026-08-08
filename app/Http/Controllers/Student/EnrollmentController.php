@@ -9,8 +9,12 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\User;
+use App\Patterns\Command\Commands\NotifyMentorOnEnrollment;
+use App\Patterns\Command\NotificationInvoker;
 use App\Patterns\Strategy\EnrollStudentStrategy;
 use App\Patterns\Strategy\EnrollmentProcessor;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 
 class EnrollmentController extends Controller
@@ -44,6 +48,21 @@ class EnrollmentController extends Controller
                 'course_id' => $course->id,
             ]
         );
+
+        // Notify the course mentor via the Command pattern.
+        $student = User::find($studentId);
+        $mentor = $course->mentor;
+
+        if ($mentor && $student) {
+            app(NotificationInvoker::class)->run(
+                new NotifyMentorOnEnrollment(
+                    app(NotificationService::class),
+                    $mentor,
+                    $student,
+                    $course
+                )
+            );
+        }
 
         return redirect()->back()
             ->with('success', 'Successfully enrolled in the course.');

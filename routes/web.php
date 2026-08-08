@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -197,6 +198,19 @@ Route::middleware('auth')->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy'])
             ->name('profile.destroy');
+});
+
+// Notifications inbox - available to every authenticated role.
+Route::middleware('auth')->group(function () {
+
+    Route::get('/notifications', [NotificationController::class, 'index'])
+            ->name('notifications.index');
+
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])
+            ->name('notifications.read');
+
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])
+            ->name('notifications.read-all');
 });
 
 require __DIR__.'/auth.php';

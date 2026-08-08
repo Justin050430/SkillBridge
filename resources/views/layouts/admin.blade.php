@@ -15,6 +15,10 @@
 <div class="flex h-screen">
 
     <!-- Sidebar -->
+    @php
+        $unreadNotifications = Auth::user()->notifications()->where('is_read', false)->count();
+    @endphp
+
     <x-ui.sidebar>
 
         @if(Auth::user()->isAdmin())
@@ -80,6 +84,22 @@
             <x-heroicon-o-user-group class="w-5 h-5"/>
 
             Enrollment Management
+
+        </x-ui.sidebar-item>
+
+        <x-ui.sidebar-item
+            :href="route('notifications.index')"
+            :active="request()->routeIs('notifications.*')">
+
+            <x-heroicon-o-bell class="w-5 h-5"/>
+
+            Notifications
+
+            @if($unreadNotifications > 0)
+                <span class="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 text-xs font-bold text-white">
+                    {{ $unreadNotifications }}
+                </span>
+            @endif
 
         </x-ui.sidebar-item>
 

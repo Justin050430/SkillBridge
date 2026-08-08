@@ -6,6 +6,10 @@
             </div>
 
             @if(Auth::user()->isStudent())
+                @php
+                    $unreadNotifications = Auth::user()->notifications()->where('is_read', false)->count();
+                @endphp
+
                 <a
                     href="{{ route('student.courses') }}"
                     class="text-sm font-medium {{ request()->routeIs('student.courses') ? 'text-indigo-600' : 'text-slate-600 hover:text-indigo-600' }}">
@@ -22,6 +26,17 @@
                     href="{{ route('student.progress') }}"
                     class="text-sm font-medium {{ request()->routeIs('student.progress') ? 'text-indigo-600' : 'text-slate-600 hover:text-indigo-600' }}">
                     My Progress
+                </a>
+
+                <a
+                    href="{{ route('notifications.index') }}"
+                    class="text-sm font-medium {{ request()->routeIs('notifications.*') ? 'text-indigo-600' : 'text-slate-600 hover:text-indigo-600' }}">
+                    Notifications
+                    @if($unreadNotifications > 0)
+                        <span class="ml-1 inline-flex items-center justify-center rounded-full bg-indigo-600 px-1.5 text-xs font-bold text-white">
+                            {{ $unreadNotifications }}
+                        </span>
+                    @endif
                 </a>
             @endif
         </div>
