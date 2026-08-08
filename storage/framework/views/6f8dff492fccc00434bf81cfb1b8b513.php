@@ -1,9 +1,26 @@
 <nav class="bg-white border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between">
         <div class="flex items-center gap-6">
-            <div class="font-bold">
-                SkillBridge
-            </div>
+            <?php if (isset($component)) { $__componentOriginale23455676c7ef1e1f29a2d2f27851fc5 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginale23455676c7ef1e1f29a2d2f27851fc5 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.skillbridge-logo','data' => ['href' => ''.e(route('dashboard')).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('skillbridge-logo'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['href' => ''.e(route('dashboard')).'']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginale23455676c7ef1e1f29a2d2f27851fc5)): ?>
+<?php $attributes = $__attributesOriginale23455676c7ef1e1f29a2d2f27851fc5; ?>
+<?php unset($__attributesOriginale23455676c7ef1e1f29a2d2f27851fc5); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginale23455676c7ef1e1f29a2d2f27851fc5)): ?>
+<?php $component = $__componentOriginale23455676c7ef1e1f29a2d2f27851fc5; ?>
+<?php unset($__componentOriginale23455676c7ef1e1f29a2d2f27851fc5); ?>
+<?php endif; ?>
 
             <?php if(Auth::user()->isStudent()): ?>
                 <?php

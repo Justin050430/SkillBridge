@@ -1,9 +1,7 @@
 <nav class="bg-white border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between">
         <div class="flex items-center gap-6">
-            <div class="font-bold">
-                SkillBridge
-            </div>
+            <x-skillbridge-logo href="{{ route('dashboard') }}" />
 
             @if(Auth::user()->isStudent())
                 @php

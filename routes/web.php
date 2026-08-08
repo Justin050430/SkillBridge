@@ -18,7 +18,7 @@ use App\Http\Controllers\Student\AssessmentController as StudentAssessmentContro
 use App\Http\Controllers\Student\ProgressController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('landing');
 });
 
 // Central post-login destination that dispatches to the role-specific dashboard.
