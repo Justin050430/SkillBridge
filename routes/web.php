@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\LessonController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Auth;
@@ -132,6 +133,29 @@ Route::middleware(['auth', 'role:Admin,Mentor'])->group(function () {
 
     Route::delete('/assessments/{assessment:slug}/questions/{question}', [QuestionController::class, 'destroy'])
             ->name('assessments.questions.destroy');
+
+    // Lessons nested under a course (uses the course slug for clean URLs).
+
+    Route::get('/courses/{course:slug}/lessons', [LessonController::class, 'index'])
+            ->name('courses.lessons.index');
+
+    Route::get('/courses/{course:slug}/lessons/create', [LessonController::class, 'create'])
+            ->name('courses.lessons.create');
+
+    Route::post('/courses/{course:slug}/lessons', [LessonController::class, 'store'])
+            ->name('courses.lessons.store');
+
+    Route::get('/courses/{course:slug}/lessons/{lesson}/edit', [LessonController::class, 'edit'])
+            ->name('courses.lessons.edit');
+
+    Route::put('/courses/{course:slug}/lessons/{lesson}', [LessonController::class, 'update'])
+            ->name('courses.lessons.update');
+
+    Route::get('/courses/{course:slug}/lessons/{lesson}/delete', [LessonController::class, 'delete'])
+            ->name('courses.lessons.delete');
+
+    Route::delete('/courses/{course:slug}/lessons/{lesson}', [LessonController::class, 'destroy'])
+            ->name('courses.lessons.destroy');
 });
 
 // Enrollment management - Admin (full oversight) + Mentor (own courses only).

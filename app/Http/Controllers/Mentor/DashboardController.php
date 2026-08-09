@@ -41,12 +41,19 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // The mentor's own courses, so they can manage lessons for them.
+        $courses = Course::withCount('lessons')
+            ->where('mentor_id', $mentorId)
+            ->orderBy('title')
+            ->get();
+
         return view('mentor.dashboard', compact(
             'totalCourses',
             'totalLessons',
             'totalAssessments',
             'totalStudents',
-            'recentAssessments'
+            'recentAssessments',
+            'courses'
         ));
     }
 }

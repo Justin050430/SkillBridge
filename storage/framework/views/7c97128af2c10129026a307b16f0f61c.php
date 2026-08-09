@@ -318,6 +318,57 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
 
         <h2 class="text-xl font-semibold mb-4">
+            My Courses
+        </h2>
+
+        <?php if($courses->isEmpty()): ?>
+
+            <p class="text-sm text-slate-500">
+                No courses yet.
+            </p>
+
+        <?php else: ?>
+
+            <div class="space-y-3">
+
+                <?php $__currentLoopData = $courses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $course): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
+
+                    <div class="min-w-0">
+
+                        <p class="font-medium text-slate-900 truncate">
+                            <?php echo e($course->title); ?>
+
+                        </p>
+
+                        <p class="text-sm text-slate-500">
+                            <?php echo e($course->lessons_count); ?> lesson(s)
+                        </p>
+
+                    </div>
+
+                    <a
+                        href="<?php echo e(route('courses.lessons.index', $course)); ?>"
+                        class="shrink-0 text-sm font-medium text-indigo-600 hover:text-indigo-700">
+
+                        Lessons →
+
+                    </a>
+
+                </div>
+
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+            </div>
+
+        <?php endif; ?>
+
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+        <h2 class="text-xl font-semibold mb-4">
             Quick Actions
         </h2>
 

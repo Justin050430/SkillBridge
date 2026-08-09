@@ -134,6 +134,13 @@
 
                     <td class="p-4 text-center">
                         <div class="flex justify-center gap-2">
+
+                            <a
+                                href="<?php echo e(route('courses.lessons.index', $course)); ?>"
+                                class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                Lessons
+                            </a>
+
                             <a
                                 href="<?php echo e(route('admin.courses.edit', $course)); ?>"
                                 class="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100">

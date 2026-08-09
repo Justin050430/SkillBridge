@@ -45,7 +45,7 @@
 
         <x-ui.sidebar-item
             :href="route('admin.courses')"
-            :active="request()->routeIs('admin.courses')">
+            :active="request()->routeIs('admin.courses') || request()->routeIs('courses.lessons.*')">
 
             <x-heroicon-o-book-open class="w-5 h-5"/>
 

@@ -141,6 +141,56 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
 
         <h2 class="text-xl font-semibold mb-4">
+            My Courses
+        </h2>
+
+        @if($courses->isEmpty())
+
+            <p class="text-sm text-slate-500">
+                No courses yet.
+            </p>
+
+        @else
+
+            <div class="space-y-3">
+
+                @foreach($courses as $course)
+
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
+
+                    <div class="min-w-0">
+
+                        <p class="font-medium text-slate-900 truncate">
+                            {{ $course->title }}
+                        </p>
+
+                        <p class="text-sm text-slate-500">
+                            {{ $course->lessons_count }} lesson(s)
+                        </p>
+
+                    </div>
+
+                    <a
+                        href="{{ route('courses.lessons.index', $course) }}"
+                        class="shrink-0 text-sm font-medium text-indigo-600 hover:text-indigo-700">
+
+                        Lessons →
+
+                    </a>
+
+                </div>
+
+                @endforeach
+
+            </div>
+
+        @endif
+
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+
+        <h2 class="text-xl font-semibold mb-4">
             Quick Actions
         </h2>
 
