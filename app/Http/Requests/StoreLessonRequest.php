@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -24,9 +25,9 @@ class StoreLessonRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'order_number' => 'required|integer|min:1',
+            'title' => ValidationRules::title(),
+            'content' => ValidationRules::longText(20000),
+            'order_number' => 'required|integer|min:1|max:9999',
             'estimated_duration' => 'nullable|integer|min:1|max:600',
             'status' => 'required|in:Draft,Published',
         ];

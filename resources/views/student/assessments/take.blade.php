@@ -29,9 +29,11 @@
         </div>
 
         <form
+            id="submit-assessment-form"
             method="POST"
             action="{{ route('student.assessments.submit', $assessment) }}"
-            onsubmit="return confirm('Are you sure you want to submit? You cannot change your answers afterwards.');">
+            x-data=""
+            x-on:submit.prevent="$dispatch('open-modal', 'confirm-submit-assessment')">
 
             @csrf
 
@@ -147,6 +149,61 @@
             </div>
 
         </form>
+
+        <x-modal name="confirm-submit-assessment" :show="false" focusable>
+            <div
+                class="p-6"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="confirm-submit-title"
+                aria-describedby="confirm-submit-description">
+
+                <div class="flex items-start gap-4">
+
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-indigo-100">
+                        <x-heroicon-o-paper-airplane class="h-6 w-6 text-indigo-600"/>
+                    </div>
+
+                    <div class="min-w-0">
+                        <h2 id="confirm-submit-title" class="text-lg font-semibold text-slate-900">
+                            {{ __('Submit Assessment?') }}
+                        </h2>
+
+                        <p id="confirm-submit-description" class="mt-1 text-sm text-slate-600">
+                            {{ __('Are you sure you want to submit your assessment? You will not be able to change your answers after submission.') }}
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+
+                    <button
+                        type="button"
+                        x-on:click="$dispatch('close')"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 font-medium text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        {{ __('Cancel') }}
+                    </button>
+
+                    <button
+                        type="button"
+                        x-data="{ submitting: false }"
+                        x-on:click="
+                            if (submitting) return;
+                            submitting = true;
+                            $nextTick(() => document.getElementById('submit-assessment-form').submit());
+                        "
+                        :disabled="submitting"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-75">
+                        <x-heroicon-o-paper-airplane x-show="!submitting" class="h-5 w-5"/>
+                        <x-heroicon-o-arrow-path x-show="submitting" class="h-5 w-5 animate-spin"/>
+                        <span x-text="submitting ? 'Submitting...' : 'Submit Assessment'"></span>
+                    </button>
+
+                </div>
+
+            </div>
+        </x-modal>
 
     </div>
 

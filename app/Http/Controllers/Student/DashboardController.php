@@ -31,8 +31,10 @@ class DashboardController extends Controller
 
         // Published assessments across the student's enrolled courses.
         $availableAssessments = Assessment::where('status', 'Published')
+            ->has('questions')
             ->whereHas('lesson', function ($lesson) use ($enrolledCourseIds) {
-                $lesson->whereIn('course_id', $enrolledCourseIds);
+                $lesson->whereIn('course_id', $enrolledCourseIds)
+                    ->where('status', 'Published');
             })
             ->with(['lesson.course'])
             ->orderBy('title')

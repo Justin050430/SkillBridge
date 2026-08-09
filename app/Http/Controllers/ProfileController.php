@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
+use App\Patterns\Command\Commands\NotifyAdminsOnSecurityEvent;
+use App\Patterns\Command\NotificationInvoker;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,6 +58,17 @@ class ProfileController extends Controller
         Auth::logout();
 
         $user->update(['status' => 'Deleted']);
+
+        // Notify admins that the user removed their own account.
+        app(NotificationInvoker::class)->run(
+            new NotifyAdminsOnSecurityEvent(
+                app(NotificationService::class),
+                'Account deactivated',
+                "The account for {$user->first_name} {$user->last_name} ({$user->email}) was deactivated by the user.",
+                User::class,
+                $user->id
+            )
+        );
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

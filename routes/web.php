@@ -11,6 +11,7 @@ use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Mentor\CourseController as MentorCourseController;
 use App\Http\Controllers\Mentor\DashboardController as MentorDashboardController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
@@ -175,6 +176,28 @@ Route::middleware(['auth', 'role:Mentor'])->group(function () {
 
     Route::get('/mentor/dashboard', [MentorDashboardController::class, 'index'])
             ->name('mentor.dashboard');
+
+    // Mentor Course Management - scoped to the authenticated mentor.
+    Route::get('/mentor/courses', [MentorCourseController::class, 'index'])
+            ->name('mentor.courses');
+
+    Route::get('/mentor/courses/create', [MentorCourseController::class, 'create'])
+            ->name('mentor.courses.create');
+
+    Route::post('/mentor/courses', [MentorCourseController::class, 'store'])
+            ->name('mentor.courses.store');
+
+    Route::get('/mentor/courses/{course:slug}/edit', [MentorCourseController::class, 'edit'])
+            ->name('mentor.courses.edit');
+
+    Route::put('/mentor/courses/{course:slug}', [MentorCourseController::class, 'update'])
+            ->name('mentor.courses.update');
+
+    Route::get('/mentor/courses/{course:slug}/delete', [MentorCourseController::class, 'delete'])
+            ->name('mentor.courses.delete');
+
+    Route::delete('/mentor/courses/{course:slug}', [MentorCourseController::class, 'destroy'])
+            ->name('mentor.courses.destroy');
 });
 
 Route::middleware(['auth', 'role:Student'])->group(function () {

@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * Validates the update of a user by an Admin.
@@ -28,16 +30,19 @@ class UpdateUserRequest extends FormRequest
         $user = $this->route('user');
 
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => ValidationRules::name(),
+            'last_name' => ValidationRules::name(),
             'email' => [
                 'required',
+                'string',
                 'email',
+                'lowercase',
+                'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
             'role_id' => 'required|exists:roles,id',
             'status' => 'nullable|in:Active,Inactive',
-            'password' => 'nullable|confirmed|min:8',
+            'password' => ['nullable', 'confirmed', Password::defaults()],
         ];
     }
 }

@@ -7,12 +7,23 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Models\Role;
+use App\Patterns\Command\Commands\NotifyAdminsOnSecurityEvent;
+use App\Patterns\Command\NotificationInvoker;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
     public function index(Request $request) {
+        // Cap user-controlled search/filter input (values are used via
+        // parameterised queries, but we still bound length/values).
+        $request->validate([
+            'search' => 'nullable|string|max:100',
+            'role' => 'nullable|integer|exists:roles,id',
+            'status' => 'nullable|in:Active,Inactive,Deleted,All',
+        ]);
+
         $query = User::with('role');
 
         // The normal user listing shows Active users only. Admins can opt in
@@ -134,6 +145,17 @@ class UserController extends Controller
         // relationships are preserved, but the user can no longer authenticate
         // and no longer appears in the active user listing.
         $user->update(['status' => 'Deleted']);
+
+        // Notify admins of this important account change (Command pattern).
+        app(NotificationInvoker::class)->run(
+            new NotifyAdminsOnSecurityEvent(
+                app(NotificationService::class),
+                'Account deactivated',
+                "The account for {$user->first_name} {$user->last_name} ({$user->email}) has been deactivated.",
+                User::class,
+                $user->id
+            )
+        );
 
         return redirect()
                         ->route('admin.users')

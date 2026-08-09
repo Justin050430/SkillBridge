@@ -94,6 +94,12 @@ class QuestionController extends Controller
 
         $question->delete();
 
+        // Invariant: a Published assessment must keep at least one question.
+        // If the last question is removed, automatically revert to Draft.
+        if ($assessment->status === 'Published' && $assessment->questions()->count() === 0) {
+            $assessment->update(['status' => 'Draft']);
+        }
+
         return redirect()
             ->route('assessments.questions.index', $assessment)
             ->with('success', 'Question deleted successfully.');

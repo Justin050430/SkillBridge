@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Patterns\Command\Commands\NotifyAdminsOnSecurityEvent;
+use App\Patterns\Command\NotificationInvoker;
+use App\Services\NotificationService;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -50,12 +53,35 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            // When the account becomes locked out, alert the admins
+            // (security event). Notified once at lockout, not per attempt.
+            if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+                $this->notifyAdminsOfLockout();
+            }
+
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    /**
+     * Notify all active admins that an account has been locked out after
+     * repeated failed login attempts.
+     */
+    protected function notifyAdminsOfLockout(): void
+    {
+        app(NotificationInvoker::class)->run(
+            new NotifyAdminsOnSecurityEvent(
+                app(NotificationService::class),
+                'Failed login lockout',
+                'Multiple failed login attempts were detected for '
+                    .$this->string('email')
+                    .'. The account has been temporarily locked.'
+            )
+        );
     }
 
     /**

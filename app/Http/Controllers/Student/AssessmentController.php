@@ -58,6 +58,22 @@ class AssessmentController extends Controller
         return $value === null ? null : (int) $value;
     }
 
+    /**
+     * A student may only access an assessment when it is Published, its parent
+     * lesson is Published, AND it contains at least one question. Enforced
+     * server-side so neither a draft lesson nor an empty assessment can ever be
+     * bypassed via a direct URL.
+     */
+    protected function ensurePublishedForStudents(Assessment $assessment): void
+    {
+        abort_unless(
+            $assessment->status === 'Published'
+                && $assessment->lesson?->status === 'Published'
+                && $assessment->questions()->exists(),
+            404
+        );
+    }
+
     public function index()
     {
         $enrolledCourseIds = $this->enrolledCourseIds();
@@ -65,8 +81,10 @@ class AssessmentController extends Controller
         $assessments = Assessment::with(['lesson.course'])
             ->withCount('questions')
             ->where('status', 'Published')
+            ->has('questions')
             ->whereHas('lesson', function ($lesson) use ($enrolledCourseIds) {
-                $lesson->whereIn('course_id', $enrolledCourseIds);
+                $lesson->whereIn('course_id', $enrolledCourseIds)
+                    ->where('status', 'Published');
             })
             ->orderBy('title')
             ->get();
@@ -97,13 +115,7 @@ class AssessmentController extends Controller
     {
         $this->ensureEnrolled($assessment);
 
-        abort_unless($assessment->status === 'Published', 404);
-
-        if ($assessment->questions()->count() === 0) {
-            return redirect()
-                ->route('student.assessments.index')
-                ->with('warning', 'This assessment has no questions yet.');
-        }
+        $this->ensurePublishedForStudents($assessment);
 
         $enrollmentId = $this->enrollmentId($assessment);
 
@@ -147,6 +159,7 @@ class AssessmentController extends Controller
     public function submit(SubmitAssessmentRequest $request, Assessment $assessment)
     {
         $this->ensureEnrolled($assessment);
+        $this->ensurePublishedForStudents($assessment);
 
         $enrollmentId = $this->enrollmentId($assessment);
 
@@ -213,6 +226,7 @@ class AssessmentController extends Controller
     public function result(Assessment $assessment)
     {
         $this->ensureEnrolled($assessment);
+        $this->ensurePublishedForStudents($assessment);
 
         $attempt = AssessmentAttempt::where('assessment_id', $assessment->id)
             ->whereHas('enrollment', function ($enrollment) {

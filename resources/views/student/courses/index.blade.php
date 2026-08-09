@@ -40,8 +40,8 @@
             class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
 
             <template x-for="course in courses" :key="course.id">
-                <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                    <div class="flex h-40 items-center justify-center bg-indigo-50">
+                <article class="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                    <div class="flex h-40 shrink-0 items-center justify-center bg-indigo-50">
                         <img
                             x-show="course.thumbnail"
                             :src="course.thumbnail"
@@ -53,42 +53,44 @@
                             class="h-12 w-12 text-indigo-300" />
                     </div>
 
-                    <div class="p-6">
+                    <div class="flex flex-1 flex-col p-6">
                         <p class="text-sm font-medium text-indigo-600" x-text="course.category"></p>
                         <h3 class="mt-2 text-xl font-semibold text-slate-900" x-text="course.title"></h3>
                         <p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600" x-text="course.description"></p>
 
-                        <div class="mt-5 border-t border-slate-100 pt-4 text-sm text-slate-500">
-                            Mentor: <span class="font-medium text-slate-700" x-text="course.mentor"></span>
-                        </div>
+                        <div class="mt-auto pt-5">
+                            <div class="border-t border-slate-100 pt-4 text-sm text-slate-500">
+                                Mentor: <span class="font-medium text-slate-700" x-text="course.mentor"></span>
+                            </div>
 
-                        <div class="mt-4">
-                            <span
-                                x-show="isEnrolled(course)"
-                                class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
+                            <div class="mt-4">
+                                <span
+                                    x-show="isEnrolled(course)"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
 
-                                <x-heroicon-o-check-circle class="h-5 w-5"/>
+                                    <x-heroicon-o-check-circle class="h-5 w-5"/>
 
-                                Enrolled
+                                    Enrolled
 
-                            </span>
+                                </span>
 
-                            <form
-                                x-show="!isEnrolled(course)"
-                                method="POST"
-                                :action="'/student/courses/' + course.slug + '/enroll'">
+                                <form
+                                    x-show="!isEnrolled(course)"
+                                    method="POST"
+                                    :action="'/student/courses/' + course.slug + '/enroll'">
 
-                                @csrf
+                                    @csrf
 
-                                <button
-                                    type="submit"
-                                    class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                                    <button
+                                        type="submit"
+                                        class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
 
-                                    Enroll
+                                        Enroll
 
-                                </button>
+                                    </button>
 
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </article>

@@ -147,6 +147,9 @@ class StudentAssessmentTest extends TestCase
         $assessmentA = $this->makeAssessment($this->makeLesson($enrolledCourse));
         $assessmentB = $this->makeAssessment($this->makeLesson($otherCourse));
 
+        // The visible assessment must contain at least one question.
+        $this->makeQuestion($assessmentA);
+
         $this->actingAs($student)
             ->get('/student/assessments')
             ->assertOk()

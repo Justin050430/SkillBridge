@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * Validates the creation of a user by an Admin.
@@ -23,11 +25,11 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'first_name' => ValidationRules::name(),
+            'last_name' => ValidationRules::name(),
+            'email' => ['required', 'string', 'email', 'lowercase', 'max:255', 'unique:users,email'],
             'role_id' => 'required|exists:roles,id',
-            'password' => 'required|confirmed|min:8',
+            'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }
 }

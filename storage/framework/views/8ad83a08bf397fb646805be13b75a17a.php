@@ -28,8 +28,17 @@
 <?php $__env->startSection('content'); ?>
 
 <div class="mb-4">
+    <?php
+        // The lesson pages are shared by Admin and Mentor. Send each role back
+        // to its own course-management area so navigation respects the same
+        // role boundaries as the backend authorization.
+        $coursesRoute = Auth::user()->isMentor()
+            ? route('mentor.courses')
+            : route('admin.courses');
+    ?>
+
     <a
-        href="<?php echo e(route('admin.courses')); ?>"
+        href="<?php echo e($coursesRoute); ?>"
         class="text-sm font-medium text-indigo-600 hover:text-indigo-700">
         ← Back to Courses
     </a>

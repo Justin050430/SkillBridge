@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -33,8 +34,8 @@ class StoreCourseRequest extends FormRequest
                 },
             ],
             'category_id' => 'required|exists:categories,id',
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'title' => ValidationRules::title(),
+            'description' => ValidationRules::longText(5000),
             'thumbnail' => 'nullable|string|max:255',
             'status' => 'required|in:Draft,Published,Archived',
         ];

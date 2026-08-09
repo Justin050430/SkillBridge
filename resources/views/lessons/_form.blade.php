@@ -30,6 +30,7 @@
             class="block mt-1 w-full"
             :value="old('title', $lesson->title ?? '')"
             placeholder="e.g. Introduction and Overview"
+            maxlength="150"
             required />
 
         <x-input-error :messages="$errors->get('title')" class="mt-2" />

@@ -40,6 +40,11 @@ class EnrollmentController extends Controller
 
     public function index(Request $request)
     {
+        $request->validate([
+            'search' => 'nullable|string|max:100',
+            'status' => 'nullable|in:Active,Completed,Dropped',
+        ]);
+
         $query = Enrollment::with(['student', 'course.mentor', 'course.category']);
 
         // Mentors only see enrollments in their own courses.

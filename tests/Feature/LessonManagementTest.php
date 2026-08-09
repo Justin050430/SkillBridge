@@ -109,6 +109,28 @@ class LessonManagementTest extends TestCase
             ->assertSee($lesson->title);
     }
 
+    public function test_back_to_courses_link_respects_the_viewers_role(): void
+    {
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $course = $this->makeCourseFor($mentor);
+        $this->makeLesson($course);
+
+        // A mentor must NOT be pointed at the Admin course-management route.
+        $this->actingAs($mentor)
+            ->get('/courses/'.$course->slug.'/lessons')
+            ->assertOk()
+            ->assertSee(route('mentor.courses'), false)
+            ->assertDontSee(route('admin.courses'), false);
+
+        // An admin navigates back to the Admin course-management area.
+        $this->actingAs($admin)
+            ->get('/courses/'.$course->slug.'/lessons')
+            ->assertOk()
+            ->assertSee(route('admin.courses'), false)
+            ->assertDontSee(route('mentor.courses'), false);
+    }
+
     public function test_mentor_cannot_access_another_mentors_course_lessons(): void
     {
         $mentorA = $this->makeUser('Mentor', 'mentorA@test.com');

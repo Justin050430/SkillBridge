@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Patterns\Command\Commands\NotifyUserOnPasswordChange;
+use App\Patterns\Command\NotificationInvoker;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -23,6 +26,14 @@ class PasswordController extends Controller
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        // Security notification to the affected user (Command pattern).
+        app(NotificationInvoker::class)->run(
+            new NotifyUserOnPasswordChange(
+                app(NotificationService::class),
+                $request->user()
+            )
+        );
 
         return back()->with('status', 'password-updated');
     }

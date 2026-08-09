@@ -49,6 +49,7 @@
             type="text"
             class="block mt-1 w-full"
             :value="old('title', $course->title ?? '')"
+            maxlength="150"
             required />
 
         <x-input-error :messages="$errors->get('title')" class="mt-2" />

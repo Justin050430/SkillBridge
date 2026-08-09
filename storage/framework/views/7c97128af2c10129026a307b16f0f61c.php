@@ -317,9 +317,21 @@
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
 
-        <h2 class="text-xl font-semibold mb-4">
-            My Courses
-        </h2>
+        <div class="flex items-center justify-between mb-4">
+
+            <h2 class="text-xl font-semibold">
+                My Courses
+            </h2>
+
+            <a
+                href="<?php echo e(route('mentor.courses')); ?>"
+                class="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+
+                Manage →
+
+            </a>
+
+        </div>
 
         <?php if($courses->isEmpty()): ?>
 

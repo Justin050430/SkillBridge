@@ -62,6 +62,11 @@ class LessonController extends Controller
     {
         $this->ensureAccessible($course);
 
+        $request->validate([
+            'search' => 'nullable|string|max:100',
+            'status' => 'nullable|in:Draft,Published',
+        ]);
+
         $query = $course->lessons()
             ->withCount('assessments');
 

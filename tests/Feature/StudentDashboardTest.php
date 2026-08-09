@@ -16,6 +16,7 @@ use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
+use App\Models\Question;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,6 +76,21 @@ class StudentDashboardTest extends TestCase
         ]);
     }
 
+    protected function makeQuestion(Assessment $assessment): void
+    {
+        $assessment->questions()->create([
+            'question_text' => 'Question?',
+            'question_type' => 'MCQ',
+            'option_a' => 'A',
+            'option_b' => 'B',
+            'option_c' => 'C',
+            'option_d' => 'D',
+            'correct_answer' => 'A',
+            'marks' => 1,
+            'order_number' => 1,
+        ]);
+    }
+
     protected function enroll(User $student, Course $course): Enrollment
     {
         return Enrollment::create([
@@ -115,6 +131,9 @@ class StudentDashboardTest extends TestCase
 
         $assessmentA = $this->makeAssessment($this->makeLesson($enrolledCourse));
         $assessmentB = $this->makeAssessment($this->makeLesson($otherCourse));
+
+        // The visible assessment must contain at least one question.
+        $this->makeQuestion($assessmentA);
 
         $this->actingAs($student)
             ->get('/student/dashboard')

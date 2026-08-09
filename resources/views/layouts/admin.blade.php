@@ -65,6 +65,16 @@
 
         </x-ui.sidebar-item>
 
+        <x-ui.sidebar-item
+            :href="route('mentor.courses')"
+            :active="request()->routeIs('mentor.courses.*') || request()->routeIs('courses.lessons.*')">
+
+            <x-heroicon-o-book-open class="w-5 h-5"/>
+
+            Course Management
+
+        </x-ui.sidebar-item>
+
         @endif
 
         <x-ui.sidebar-item

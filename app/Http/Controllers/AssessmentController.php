@@ -50,6 +50,11 @@ class AssessmentController extends Controller
 
     public function index(Request $request)
     {
+        $request->validate([
+            'search' => 'nullable|string|max:100',
+            'status' => 'nullable|in:Draft,Published',
+        ]);
+
         $query = $this->scopedQuery();
 
         if ($request->filled('search')) {
@@ -121,6 +126,10 @@ class AssessmentController extends Controller
     public function edit(Assessment $assessment)
     {
         $this->ensureAccessible($assessment);
+
+        // Load the question count so the form can disable publishing for an
+        // assessment that has no questions yet.
+        $assessment->loadCount('questions');
 
         $lessons = $this->availableLessons();
 

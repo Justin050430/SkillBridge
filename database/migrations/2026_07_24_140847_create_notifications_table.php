@@ -22,13 +22,10 @@ return new class extends Migration
 
             $table->text('message');
 
-            $table->enum('notification_type', [
-                'Course',
-                'Lesson',
-                'Assessment',
-                'Enrollment',
-                'System'
-            ]);
+            // Plain string rather than an enum so new types (e.g. 'Security')
+            // work consistently across MySQL and SQLite. The allowed values
+            // are enforced at the application layer by the command classes.
+            $table->string('notification_type', 20);
 
             $table->boolean('is_read')->default(false);
 

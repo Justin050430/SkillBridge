@@ -29,6 +29,8 @@
             type="text"
             class="block mt-1 w-full"
             :value="old('first_name', $user->first_name ?? '')"
+            maxlength="100"
+            pattern="[\p{L}\p{M}' -]+"
             required />
 
         <x-input-error
@@ -48,6 +50,8 @@
             type="text"
             class="block mt-1 w-full"
             :value="old('last_name', $user->last_name ?? '')"
+            maxlength="100"
+            pattern="[\p{L}\p{M}' -]+"
             required />
 
         <x-input-error

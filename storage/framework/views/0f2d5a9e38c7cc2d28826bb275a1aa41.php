@@ -139,6 +139,12 @@
                             <?php echo e($assessment->status); ?>
 
                         </span>
+
+                        <?php if($assessment->questions_count === 0): ?>
+                            <p class="mt-1 text-xs text-amber-600">
+                                Add questions before publishing
+                            </p>
+                        <?php endif; ?>
                     </td>
 
                     <td class="p-4 text-center">

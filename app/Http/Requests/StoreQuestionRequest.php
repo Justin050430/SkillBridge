@@ -24,18 +24,18 @@ class StoreQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'question_text' => 'required|string',
+            'question_text' => ['required', 'string', 'max:2000', 'regex:/^[^<>]+$/'],
             'question_type' => 'required|in:MCQ,TrueFalse,ShortAnswer',
-            'option_a' => 'nullable|string',
-            'option_b' => 'nullable|string',
-            'option_c' => 'nullable|string',
-            'option_d' => 'nullable|string',
+            'option_a' => 'nullable|string|max:255',
+            'option_b' => 'nullable|string|max:255',
+            'option_c' => 'nullable|string|max:255',
+            'option_d' => 'nullable|string|max:255',
             'correct_answer_mcq' => 'nullable|required_if:question_type,MCQ|string|max:255',
             'correct_answer_tf' => 'nullable|required_if:question_type,TrueFalse|string|max:255',
             'correct_answer_short' => 'nullable|required_if:question_type,ShortAnswer|string|max:255',
-            'explanation' => 'nullable|string',
+            'explanation' => 'nullable|string|max:5000',
             'marks' => 'required|integer|min:1|max:100',
-            'order_number' => 'required|integer|min:1',
+            'order_number' => 'required|integer|min:1|max:9999',
         ];
     }
 }

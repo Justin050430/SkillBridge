@@ -103,6 +103,12 @@
                         <span class="px-3 py-1 rounded-full text-sm font-medium {{ $statusClasses }}">
                             {{ $assessment->status }}
                         </span>
+
+                        @if($assessment->questions_count === 0)
+                            <p class="mt-1 text-xs text-amber-600">
+                                Add questions before publishing
+                            </p>
+                        @endif
                     </td>
 
                     <td class="p-4 text-center">

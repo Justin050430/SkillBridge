@@ -21,7 +21,9 @@ class ProgressController extends Controller
         $studentId = Auth::id();
 
         $enrollments = Enrollment::with(['course.lessons' => function ($query) {
-            $query->orderBy('order_number');
+            // Students may only see published lessons.
+            $query->where('status', 'Published')
+                ->orderBy('order_number');
         }])
             ->where('student_id', $studentId)
             ->where('status', 'Active')
@@ -45,6 +47,9 @@ class ProgressController extends Controller
             ->first();
 
         abort_unless($enrollment, 403, 'You are not enrolled in this course.');
+
+        // Students may only mark progress on published lessons.
+        abort_unless($lesson->status === 'Published', 404);
 
         $status = $request->validated('status');
 

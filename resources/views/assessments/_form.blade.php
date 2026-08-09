@@ -36,6 +36,7 @@
             class="block mt-1 w-full"
             :value="old('title', $assessment->title ?? '')"
             placeholder="e.g. Laravel Basics Quiz"
+            maxlength="150"
             required />
 
         <x-input-error :messages="$errors->get('title')" class="mt-2" />
@@ -105,13 +106,26 @@
     <div>
         <x-input-label for="status" :value="__('Status')" />
 
+        @php
+            $questionCount = $assessment->questions_count ?? 0;
+        @endphp
+
         <select id="status" name="status" class="block mt-1 w-full rounded-lg border-gray-300" required>
             @foreach(['Draft', 'Published'] as $status)
-                <option value="{{ $status }}" @selected(old('status', $assessment->status ?? 'Draft') === $status)>
+                <option
+                    value="{{ $status }}"
+                    @selected(old('status', $assessment->status ?? 'Draft') === $status)
+                    @disabled($status === 'Published' && $questionCount === 0)>
                     {{ $status }}
                 </option>
             @endforeach
         </select>
+
+        @if($questionCount === 0)
+            <p class="mt-2 text-sm text-amber-600">
+                Add questions before publishing.
+            </p>
+        @endif
 
         <x-input-error :messages="$errors->get('status')" class="mt-2" />
     </div>

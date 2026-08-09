@@ -18,14 +18,26 @@ class NotificationService
 {
     /**
      * Create a notification record for the given user.
+     *
+     * $relatedType / $relatedId are optional polymorphic-style references that
+     * let a notification link to the relevant course, assessment, enrollment
+     * or user record in the inbox.
      */
-    public function notify(User $user, string $title, string $message, string $type): Notification
-    {
+    public function notify(
+        User $user,
+        string $title,
+        string $message,
+        string $type,
+        ?string $relatedType = null,
+        ?int $relatedId = null
+    ): Notification {
         return Notification::create([
             'user_id' => $user->id,
             'title' => $title,
             'message' => $message,
             'notification_type' => $type,
+            'related_type' => $relatedType,
+            'related_id' => $relatedId,
         ]);
     }
 }

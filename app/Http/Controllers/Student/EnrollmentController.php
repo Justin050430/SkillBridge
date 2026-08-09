@@ -11,6 +11,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Patterns\Command\Commands\NotifyMentorOnEnrollment;
+use App\Patterns\Command\Commands\NotifyStudentOnEnrollment;
 use App\Patterns\Command\NotificationInvoker;
 use App\Patterns\Strategy\EnrollStudentStrategy;
 use App\Patterns\Strategy\EnrollmentProcessor;
@@ -49,7 +50,8 @@ class EnrollmentController extends Controller
             ]
         );
 
-        // Notify the course mentor via the Command pattern.
+        // Notify the course mentor and confirm the enrollment to the student
+        // via the Command pattern.
         $student = User::find($studentId);
         $mentor = $course->mentor;
 
@@ -58,6 +60,16 @@ class EnrollmentController extends Controller
                 new NotifyMentorOnEnrollment(
                     app(NotificationService::class),
                     $mentor,
+                    $student,
+                    $course
+                )
+            );
+        }
+
+        if ($student) {
+            app(NotificationInvoker::class)->run(
+                new NotifyStudentOnEnrollment(
+                    app(NotificationService::class),
                     $student,
                     $course
                 )

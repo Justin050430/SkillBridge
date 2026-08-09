@@ -145,7 +145,9 @@ class AssessmentManagementTest extends TestCase
                 'passing_score' => 60,
                 'time_limit' => 20,
                 'max_attempts' => 3,
-                'status' => 'Published',
+                // A new assessment has no questions yet, so it must be created
+                // as Draft (publishing requires at least one question).
+                'status' => 'Draft',
             ])
             ->assertRedirect('/assessments');
 
