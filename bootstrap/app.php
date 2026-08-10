@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->trustProxies(at: '*');
 
     // Production-only HTTPS enforcement.
-    $middleware->prepend(\App\Http\Middleware\EnsureSecureConnection::class);
+    //$middleware->prepend(\App\Http\Middleware\EnsureSecureConnection::class);
 })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Secure coding: log every access-control failure (audit trail).
