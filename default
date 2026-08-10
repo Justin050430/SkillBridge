@@ -7,6 +7,7 @@ server {
     index index.php index.html index.htm;
 
     location / {
+        index index.php index.html index.htm;
         try_files $uri $uri/ /index.php?$args;
     }
 
@@ -21,6 +22,12 @@ server {
         include fastcgi.conf;
 
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+        # Preserve Azure's original HTTPS information
+        fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;
+        fastcgi_param HTTP_X_FORWARDED_FOR $http_x_forwarded_for;
+        fastcgi_param HTTP_X_FORWARDED_HOST $http_x_forwarded_host;
+
         fastcgi_param PATH_INFO $fastcgi_path_info;
     }
 
