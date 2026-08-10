@@ -16,13 +16,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias([
-                        'role' => \App\Http\Middleware\RoleMiddleware::class,
-                    ]);
+    $middleware->alias([
+        'role' => \App\Http\Middleware\RoleMiddleware::class,
+    ]);
 
-        // Production-only HTTPS enforcement (no-op in local development).
-        $middleware->prepend(\App\Http\Middleware\EnsureSecureConnection::class);
-                })
+    // Trust Azure App Service reverse proxy headers.
+    $middleware->trustProxies(
+        at: '*',
+        headers: Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_HOST
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO
+    );
+
+    // Production-only HTTPS enforcement.
+    $middleware->prepend(\App\Http\Middleware\EnsureSecureConnection::class);
+})
     ->withExceptions(function (Exceptions $exceptions): void {
         // Secure coding: log every access-control failure (audit trail).
         $exceptions->render(function (HttpException $exception, Request $request) {
