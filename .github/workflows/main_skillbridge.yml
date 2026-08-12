@@ -33,6 +33,21 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend assets with Vite
+        run: npm run build
+
+      - name: Verify Vite manifest was generated
+        run: |
+          test -f public/build/manifest.json && echo "manifest.json OK" || { echo "ERROR: public/build/manifest.json not generated"; exit 1; }
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
