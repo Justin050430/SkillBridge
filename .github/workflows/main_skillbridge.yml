@@ -58,27 +58,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read
-
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: php-app
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CFF34295413243BCA06859A6E776D5B7 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D0E7A4CB4C4B4073BE3E2CAF7E084A12 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C98675B5EE304335B1CF5ADAE0081467 }}
-
+      # Deploy using the App Service publish profile (stored in the
+      # AZURE_WEBAPP_PUBLISH_PROFILE secret). This targets the app directly and
+      # avoids the OIDC app-name / subscription mismatch ("Resource ... of type
+      # Microsoft.Web/Sites doesn't exist").
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'skillbridge-cwcwcedpe7cdfqds'
-          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: .
