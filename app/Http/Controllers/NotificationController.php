@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * Notifications inbox shared by all roles (student, mentor, admin).
  * Ownership is enforced server-side: users can only ever see and mark their

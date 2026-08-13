@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author GEN TECK NG
  */
 
 namespace App\Http\Controllers\Student;

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * Session / communication security for the Notification module.
  * Enforces HTTPS on every request in the production environment, so session

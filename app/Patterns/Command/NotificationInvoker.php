@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * GoF Command pattern - Invoker.
  * Triggers the execution of a notification command. The invoker knows how to

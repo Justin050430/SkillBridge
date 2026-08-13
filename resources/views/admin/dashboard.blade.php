@@ -99,12 +99,13 @@
 
             </a>
 
-            <button
-                class="w-full bg-slate-100 hover:bg-slate-200 py-3 rounded-xl transition">
+            <a
+                href="{{ route('admin.reports') }}"
+                class="block w-full bg-slate-100 hover:bg-slate-200 text-center py-3 rounded-xl transition">
 
                 View Reports
 
-            </button>
+            </a>
 
         </div>
 

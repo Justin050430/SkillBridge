@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author GEN TECK NG
  *
  * GoF Strategy pattern - ConcreteStrategy.
  * Transitions an Active enrollment to Completed (recording completed_at).

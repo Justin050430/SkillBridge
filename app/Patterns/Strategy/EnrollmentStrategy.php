@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author GEN TECK NG
  *
  * GoF Strategy pattern - Strategy interface for enrollment processing.
  * Concrete strategies encapsulate the state-changing business logic for each

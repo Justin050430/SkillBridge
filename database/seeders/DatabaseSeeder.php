@@ -2,22 +2,22 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
+     *
+     * Note: model events are intentionally left enabled so the HasSlug trait
+     * (which fills slugs on the "saving" event) works while seeding.
      */
     public function run(): void {
         $this->call([
             RoleSeeder::class,
             AdminSeeder::class,
             CategorySeeder::class,
+            DemoDataSeeder::class,
         ]);
     }
 }

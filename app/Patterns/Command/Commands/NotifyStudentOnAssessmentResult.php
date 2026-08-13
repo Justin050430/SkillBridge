@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * GoF Command pattern - ConcreteCommand.
  * Notifies a student that their assessment result is ready, including the

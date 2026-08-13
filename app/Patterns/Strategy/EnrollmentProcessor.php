@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author GEN TECK NG
  *
  * GoF Strategy pattern - Context.
  * Executes whichever enrollment strategy has been selected, keeping the

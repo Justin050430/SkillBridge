@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author GEN TECK NG
  *
  * GoF Strategy pattern - ConcreteStrategy.
  * Creates (or returns) an Active enrollment for a student in a course.

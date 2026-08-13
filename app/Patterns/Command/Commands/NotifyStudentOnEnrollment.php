@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * GoF Command pattern - ConcreteCommand.
  * Confirms to a student that they have successfully enrolled in a course.

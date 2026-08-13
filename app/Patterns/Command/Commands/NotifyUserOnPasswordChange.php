@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * GoF Command pattern - ConcreteCommand.
  * Sends a security notification to a user confirming that their password was

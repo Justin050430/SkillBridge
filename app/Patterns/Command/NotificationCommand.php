@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * GoF Command pattern - Command interface.
  * Encapsulates a notification intent as an object that can be executed by an

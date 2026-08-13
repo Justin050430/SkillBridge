@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author ZHI FOOK CHUA
  */
 
 namespace App\Http\Controllers\Mentor;

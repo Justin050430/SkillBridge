@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @author YIK HANG YIP
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;

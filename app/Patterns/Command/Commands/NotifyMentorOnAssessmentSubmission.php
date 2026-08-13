@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * GoF Command pattern - ConcreteCommand.
  * Notifies a course mentor that a student submitted one of their assessments.

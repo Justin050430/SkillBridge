@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * GoF Command pattern - ConcreteCommand.
  * Broadcasts a security-related event to every active admin. Used for

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @author ZHI FOOK CHUA
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;

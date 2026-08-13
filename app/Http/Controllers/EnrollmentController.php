@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author GEN TECK NG
  *
  * Enrollment management shared by Admin and Mentor.
  *  - Admin  : full oversight of all enrollments.

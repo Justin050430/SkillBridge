@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @author OOI JIAN XIN
+ */
+
 namespace App\Models;
 
 use App\Models\Concerns\HasSlug;

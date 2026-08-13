@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author YIK HANG YIP
  *
  * Receiver for the GoF Command pattern. The NotificationService is the object
  * that concrete notification commands act upon - it is responsible for

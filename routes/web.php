@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\EnrollmentController;
@@ -40,6 +41,9 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
 
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
             ->name('admin.dashboard');
+
+    Route::get('/admin/reports', [ReportController::class, 'index'])
+            ->name('admin.reports');
     
     Route::get('/admin/users', [UserController::class, 'index'])
             ->name('admin.users');
