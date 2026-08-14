@@ -6,6 +6,7 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Exceptions\MaxDropLimitExceededException;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Enrollment;
@@ -52,13 +53,25 @@ class EnrollmentController extends Controller
                 ->with('info', 'You are already enrolled in this course.');
         }
 
-        $enrollment = app(EnrollmentProcessor::class)->process(
-            app(EnrollStudentStrategy::class),
-            [
-                'student_id' => $studentId,
-                'course_id' => $course->id,
-            ]
-        );
+        try {
+            $enrollment = app(EnrollmentProcessor::class)->process(
+                app(EnrollStudentStrategy::class),
+                [
+                    'student_id' => $studentId,
+                    'course_id' => $course->id,
+                ]
+            );
+        } catch (MaxDropLimitExceededException $exception) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'E',
+                    'message' => $exception->getMessage(),
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->with('error', $exception->getMessage());
+        }
 
         // Notify the course mentor and confirm the enrollment to the student
         // via the Command pattern.
@@ -119,10 +132,19 @@ class EnrollmentController extends Controller
             ['enrollment' => $enrollment]
         );
 
+        // Derive the historical drop count so the frontend can flip the card
+        // to "Enrollment Limit Reached" once the maximum is reached.
+        $dropCount = Enrollment::where('student_id', $enrollment->student_id)
+            ->where('course_id', $enrollment->course_id)
+            ->where('status', 'Dropped')
+            ->count();
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'S',
                 'enrollment_status' => $enrollment->status,
+                'drop_count' => $dropCount,
+                'limit_reached' => $dropCount >= EnrollStudentStrategy::MAX_DROPS,
                 'message' => 'You have dropped this course.',
             ]);
         }

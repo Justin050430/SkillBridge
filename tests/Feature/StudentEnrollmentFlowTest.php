@@ -97,8 +97,8 @@ class StudentEnrollmentFlowTest extends TestCase
         $this->actingAs($student)
             ->get('/student/courses')
             ->assertOk()
-            ->assertViewHas('enrollments', function ($enrollments) use ($course) {
-                return ($enrollments->get($course->id) ?? null) === 'Active';
+            ->assertViewHas('enrollmentStates', function ($enrollmentStates) use ($course) {
+                return ($enrollmentStates->get($course->id) ?? null) === 'Active';
             });
     }
 
@@ -132,6 +132,8 @@ class StudentEnrollmentFlowTest extends TestCase
         $course = $this->makeCourseFor($mentor);
 
         $this->actingAs($student)->postJson('/student/courses/'.$course->slug.'/enroll')->assertOk();
+        $firstEnrollment = Enrollment::where('student_id', $student->id)->where('course_id', $course->id)->first();
+
         $this->actingAs($student)->postJson('/student/courses/'.$course->slug.'/drop')->assertOk();
 
         $this->actingAs($student)
@@ -139,10 +141,18 @@ class StudentEnrollmentFlowTest extends TestCase
             ->assertOk()
             ->assertJson(['status' => 'S', 'enrollment_status' => 'Active']);
 
-        // Unique (student_id, course_id) constraint is respected - the same row
-        // is reactivated, never duplicated.
-        $this->assertEquals(1, Enrollment::where('student_id', $student->id)->where('course_id', $course->id)->count());
-        $this->assertSame('Active', Enrollment::where('student_id', $student->id)->where('course_id', $course->id)->first()->status);
+        // A fresh enrollment row is created per cycle. The historical Dropped
+        // row is preserved and the new Active row is a different record.
+        $rows = Enrollment::where('student_id', $student->id)
+            ->where('course_id', $course->id)
+            ->get();
+
+        $this->assertCount(2, $rows);
+        $this->assertSame('Dropped', $rows->firstWhere('id', $firstEnrollment->id)->status);
+
+        $active = $rows->firstWhere('status', 'Active');
+        $this->assertNotNull($active);
+        $this->assertNotEquals($firstEnrollment->id, $active->id);
     }
 
     public function test_student_cannot_drop_someone_elses_enrollment(): void

@@ -34,6 +34,20 @@ class AssessmentController extends Controller
     }
 
     /**
+     * Enrollment IDs of the student's current ACTIVE enrollments. Attempts and
+     * progress are scoped by enrollment_id, so using only active enrollments
+     * guarantees a re-enrolment after dropping starts from zero (a dropped
+     * cycle's attempts never carry over).
+     */
+    protected function activeEnrollmentIds(): array
+    {
+        return Enrollment::where('student_id', Auth::id())
+            ->where('status', 'Active')
+            ->pluck('id')
+            ->all();
+    }
+
+    /**
      * Only enrolled students may reach an assessment.
      */
     protected function ensureEnrolled(Assessment $assessment): void
@@ -90,9 +104,7 @@ class AssessmentController extends Controller
             ->get();
 
         $attempts = AssessmentAttempt::with('assessment')
-            ->whereHas('enrollment', function ($enrollment) {
-                $enrollment->where('student_id', Auth::id());
-            })
+            ->whereIn('enrollment_id', $this->activeEnrollmentIds())
             ->get()
             ->groupBy('assessment_id');
 

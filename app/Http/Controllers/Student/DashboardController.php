@@ -40,10 +40,11 @@ class DashboardController extends Controller
             ->orderBy('title')
             ->get();
 
-        // Submitted attempts by this student.
-        $attemptsTaken = AssessmentAttempt::whereHas('enrollment', function ($enrollment) use ($studentId) {
-            $enrollment->where('student_id', $studentId);
-        })->whereNotNull('submitted_at')->count();
+        // Submitted attempts within the student's ACTIVE enrollments only, so
+        // a re-enrolment after dropping starts at zero.
+        $attemptsTaken = AssessmentAttempt::whereIn('enrollment_id', $enrollments->pluck('id'))
+            ->whereNotNull('submitted_at')
+            ->count();
 
         // Lessons completed across active enrollments.
         $completedLessons = Progress::whereIn('enrollment_id', $enrollments->pluck('id'))

@@ -8,18 +8,40 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
+use App\Patterns\Strategy\EnrollStudentStrategy;
 use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
     public function index()
     {
-        // Map of course_id => enrollment status (Active / Completed / Dropped)
-        // so the catalogue can render the correct button for each course.
-        $enrollments = Enrollment::where('student_id', Auth::id())
+        // Per-course state for the catalogue. Priority: Active > Completed >
+        // Dropped (with the 3-drop limit) > null.
+        $enrollmentStates = Enrollment::where('student_id', Auth::id())
             ->get()
-            ->mapWithKeys(fn (Enrollment $enrollment) => [$enrollment->course_id => $enrollment->status]);
+            ->groupBy('course_id')
+            ->map(function ($enrollments) {
+                if ($enrollments->contains('status', 'Active')) {
+                    return 'Active';
+                }
 
-        return view('student.courses.index', compact('enrollments'));
+                if ($enrollments->contains('status', 'Completed')) {
+                    return 'Completed';
+                }
+
+                $dropped = $enrollments->where('status', 'Dropped')->count();
+
+                if ($dropped >= EnrollStudentStrategy::MAX_DROPS) {
+                    return 'LimitReached';
+                }
+
+                if ($dropped > 0) {
+                    return 'Dropped';
+                }
+
+                return null;
+            });
+
+        return view('student.courses.index', compact('enrollmentStates'));
     }
 }

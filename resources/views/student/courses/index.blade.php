@@ -110,6 +110,14 @@
                                     Enroll Again
                                 </button>
 
+                                {{-- Enrollment limit reached (3 drops) --}}
+                                <div
+                                    x-show="enrollmentStatus(course) === 'LimitReached'"
+                                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700">
+                                    <x-heroicon-o-exclamation-triangle class="h-5 w-5"/>
+                                    Enrollment Limit Reached
+                                </div>
+
                                 {{-- Completed --}}
                                 <span
                                     x-show="enrollmentStatus(course) === 'Completed'"
@@ -134,7 +142,7 @@
                 courses: [],
                 loading: true,
                 error: '',
-                enrollments: @json($enrollments),
+                enrollmentStates: @json($enrollmentStates),
                 csrf: @json(csrf_token()),
                 busy: false,
                 message: '',
@@ -164,7 +172,7 @@
                 },
 
                 enrollmentStatus(course) {
-                    return this.enrollments[course.id] ?? null;
+                    return this.enrollmentStates[course.id] ?? null;
                 },
 
                 async enroll(course) {
@@ -197,7 +205,14 @@
                             throw new Error(payload.message || 'Unable to update your enrollment.');
                         }
 
-                        this.enrollments[course.id] = payload.enrollment_status;
+                        if (action === 'drop') {
+                            // Once the 3rd drop is reached the card locks to
+                            // "Enrollment Limit Reached" (no enroll button).
+                            this.enrollmentStates[course.id] = payload.limit_reached ? 'LimitReached' : 'Dropped';
+                        } else {
+                            this.enrollmentStates[course.id] = payload.enrollment_status;
+                        }
+
                         this.showMessage(payload.message || 'Done.', 'success');
                     } catch (error) {
                         this.showMessage(error.message || 'Something went wrong. Please try again.', 'error');
