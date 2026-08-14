@@ -224,4 +224,33 @@ class AssessmentManagementTest extends TestCase
             'correct_answer' => 'True',
         ]);
     }
+
+    public function test_mentor_can_add_question_to_own_assessment(): void
+    {
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $assessment = $this->makeAssessmentFor($mentor);
+
+        // A mentor must be able to manage questions for an assessment inside
+        // their own course (regression: strict int/string comparison on the
+        // mentor_id FK used to return a false 403 on MySQL/sqlsrv).
+        $this->actingAs($mentor)
+            ->post('/assessments/'.$assessment->slug.'/questions', [
+                'question_text' => 'Mentor question?',
+                'question_type' => 'MCQ',
+                'option_a' => 'Option A',
+                'option_b' => 'Option B',
+                'option_c' => 'Option C',
+                'option_d' => 'Option D',
+                'correct_answer_mcq' => 'A',
+                'marks' => 1,
+                'order_number' => 1,
+            ])
+            ->assertRedirect('/assessments/'.$assessment->slug.'/questions');
+
+        $this->assertDatabaseHas('questions', [
+            'assessment_id' => $assessment->id,
+            'question_text' => 'Mentor question?',
+            'correct_answer' => 'A',
+        ]);
+    }
 }

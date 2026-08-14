@@ -175,7 +175,9 @@ class AssessmentController extends Controller
     protected function ensureAccessible(Assessment $assessment): void
     {
         if ($this->currentUser()->isMentor()) {
-            $owns = $assessment->lesson->course->mentor_id === $this->currentUser()->id;
+            // Cast to int: FK columns can arrive as strings on MySQL/sqlsrv,
+            // which would make a strict comparison with the int user id fail (403).
+            $owns = (int) $assessment->lesson->course->mentor_id === (int) $this->currentUser()->id;
             abort_unless($owns, 403, 'You can only manage assessments in your own courses.');
         }
     }

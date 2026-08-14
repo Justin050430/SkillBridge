@@ -121,7 +121,9 @@ class EnrollmentController extends Controller
     protected function ensureAccessible(Enrollment $enrollment): void
     {
         if ($this->currentUser()->isMentor()) {
-            $owns = $enrollment->course->mentor_id === $this->currentUser()->id;
+            // Cast to int: FK columns can arrive as strings on MySQL/sqlsrv,
+            // which would make a strict comparison with the int user id fail (403).
+            $owns = (int) $enrollment->course->mentor_id === (int) $this->currentUser()->id;
             abort_unless($owns, 403, 'You can only manage enrollments in your own courses.');
         }
     }
