@@ -26,6 +26,15 @@
         </div>
 
         <div
+            x-show="message"
+            x-cloak
+            x-transition
+            class="mb-6 rounded-2xl border p-4 text-sm font-medium"
+            :class="messageType === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'">
+            <p x-text="message"></p>
+        </div>
+
+        <div
             x-show="!loading && !error && courses.length === 0"
             x-cloak
             class="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
@@ -64,32 +73,51 @@
                             </div>
 
                             <div class="mt-4">
-                                <span
-                                    x-show="isEnrolled(course)"
-                                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
 
-                                    <x-heroicon-o-check-circle class="h-5 w-5"/>
+                                {{-- Not enrolled --}}
+                                <button
+                                    type="button"
+                                    x-show="enrollmentStatus(course) === null"
+                                    x-on:click="enroll(course)"
+                                    x-bind:disabled="busy"
+                                    class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                                    Enroll
+                                </button>
 
-                                    Enrolled
-
-                                </span>
-
-                                <form
-                                    x-show="!isEnrolled(course)"
-                                    method="POST"
-                                    :action="'/student/courses/' + course.slug + '/enroll'">
-
-                                    @csrf
+                                {{-- Active: enrolled + drop --}}
+                                <div x-show="enrollmentStatus(course) === 'Active'" class="flex items-center gap-2">
+                                    <span class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
+                                        <x-heroicon-o-check-circle class="h-5 w-5"/>
+                                        Enrolled
+                                    </span>
 
                                     <button
-                                        type="submit"
-                                        class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
-
-                                        Enroll
-
+                                        type="button"
+                                        x-on:click="drop(course)"
+                                        x-bind:disabled="busy"
+                                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60">
+                                        Drop
                                     </button>
+                                </div>
 
-                                </form>
+                                {{-- Dropped: allow re-enrolment --}}
+                                <button
+                                    type="button"
+                                    x-show="enrollmentStatus(course) === 'Dropped'"
+                                    x-on:click="enroll(course)"
+                                    x-bind:disabled="busy"
+                                    class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                                    Enroll Again
+                                </button>
+
+                                {{-- Completed --}}
+                                <span
+                                    x-show="enrollmentStatus(course) === 'Completed'"
+                                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
+                                    <x-heroicon-o-check-circle class="h-5 w-5"/>
+                                    Completed
+                                </span>
+
                             </div>
                         </div>
                     </div>
@@ -106,7 +134,12 @@
                 courses: [],
                 loading: true,
                 error: '',
-                enrolled: @json($enrolledCourseIds),
+                enrollments: @json($enrollments),
+                csrf: @json(csrf_token()),
+                busy: false,
+                message: '',
+                messageType: 'success',
+                _messageTimer: null,
 
                 async loadCourses() {
                     try {
@@ -130,8 +163,56 @@
                     }
                 },
 
-                isEnrolled(course) {
-                    return this.enrolled.includes(course.id);
+                enrollmentStatus(course) {
+                    return this.enrollments[course.id] ?? null;
+                },
+
+                async enroll(course) {
+                    await this.submitEnrollment(course, 'enroll');
+                },
+
+                async drop(course) {
+                    await this.submitEnrollment(course, 'drop');
+                },
+
+                async submitEnrollment(course, action) {
+                    if (this.busy) return;
+                    this.busy = true;
+
+                    try {
+                        const response = await fetch('/student/courses/' + course.slug + '/' + action, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': this.csrf,
+                            },
+                            body: JSON.stringify({}),
+                        });
+
+                        const payload = await response.json();
+
+                        if (!response.ok || payload.status !== 'S') {
+                            throw new Error(payload.message || 'Unable to update your enrollment.');
+                        }
+
+                        this.enrollments[course.id] = payload.enrollment_status;
+                        this.showMessage(payload.message || 'Done.', 'success');
+                    } catch (error) {
+                        this.showMessage(error.message || 'Something went wrong. Please try again.', 'error');
+                    } finally {
+                        this.busy = false;
+                    }
+                },
+
+                showMessage(message, type) {
+                    this.message = message;
+                    this.messageType = type;
+                    clearTimeout(this._messageTimer);
+                    this._messageTimer = setTimeout(() => {
+                        this.message = '';
+                    }, 3000);
                 },
             };
         }

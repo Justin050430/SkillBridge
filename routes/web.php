@@ -215,6 +215,9 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     Route::post('/student/courses/{course:slug}/enroll', [StudentEnrollmentController::class, 'store'])
             ->name('student.enroll');
 
+    Route::post('/student/courses/{course:slug}/drop', [StudentEnrollmentController::class, 'drop'])
+            ->name('student.drop');
+
     // Assessments
 
     Route::get('/student/assessments', [StudentAssessmentController::class, 'index'])

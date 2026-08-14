@@ -29,6 +29,24 @@ class EnrollStudentStrategy implements EnrollmentStrategy
             return $existing;
         }
 
+        // Re-enrollment: a dropped enrollment already exists for this student
+        // and course (unique student_id + course_id), so reactivate it rather
+        // than creating a duplicate row.
+        $dropped = Enrollment::where('student_id', $studentId)
+            ->where('course_id', $courseId)
+            ->where('status', 'Dropped')
+            ->first();
+
+        if ($dropped) {
+            $dropped->update([
+                'status' => 'Active',
+                'enrolled_at' => now(),
+                'completed_at' => null,
+            ]);
+
+            return $dropped->refresh();
+        }
+
         return Enrollment::create([
             'student_id' => $studentId,
             'course_id' => $courseId,

@@ -14,11 +14,12 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $enrolledCourseIds = Enrollment::where('student_id', Auth::id())
-            ->where('status', 'Active')
-            ->pluck('course_id')
-            ->all();
+        // Map of course_id => enrollment status (Active / Completed / Dropped)
+        // so the catalogue can render the correct button for each course.
+        $enrollments = Enrollment::where('student_id', Auth::id())
+            ->get()
+            ->mapWithKeys(fn (Enrollment $enrollment) => [$enrollment->course_id => $enrollment->status]);
 
-        return view('student.courses.index', compact('enrolledCourseIds'));
+        return view('student.courses.index', compact('enrollments'));
     }
 }
