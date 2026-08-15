@@ -18,6 +18,7 @@ use App\Http\Controllers\Student\DashboardController as StudentDashboardControll
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\EnrollmentController as StudentEnrollmentController;
 use App\Http\Controllers\Student\AssessmentController as StudentAssessmentController;
+use App\Http\Controllers\Student\LessonController as StudentLessonController;
 use App\Http\Controllers\Student\ProgressController;
 
 Route::get('/', function () {
@@ -150,6 +151,9 @@ Route::middleware(['auth', 'role:Admin,Mentor'])->group(function () {
     Route::post('/courses/{course:slug}/lessons', [LessonController::class, 'store'])
             ->name('courses.lessons.store');
 
+    Route::post('/courses/{course:slug}/lessons/preview', [LessonController::class, 'preview'])
+            ->name('courses.lessons.preview');
+
     Route::get('/courses/{course:slug}/lessons/{lesson}/edit', [LessonController::class, 'edit'])
             ->name('courses.lessons.edit');
 
@@ -161,6 +165,9 @@ Route::middleware(['auth', 'role:Admin,Mentor'])->group(function () {
 
     Route::delete('/courses/{course:slug}/lessons/{lesson}', [LessonController::class, 'destroy'])
             ->name('courses.lessons.destroy');
+
+    Route::get('/courses/{course:slug}/lessons/{lesson}/resources/{resource}/download', [LessonController::class, 'downloadResource'])
+            ->name('courses.lessons.resource.download');
 });
 
 // Enrollment management - Admin (full oversight) + Mentor (own courses only).
@@ -217,6 +224,14 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
 
     Route::post('/student/courses/{course:slug}/drop', [StudentEnrollmentController::class, 'drop'])
             ->name('student.drop');
+
+    // Lesson reading + resource downloads (enrolled students only).
+
+    Route::get('/student/courses/{course:slug}/lessons/{lesson}', [StudentLessonController::class, 'show'])
+            ->name('student.lessons.show');
+
+    Route::get('/student/courses/{course:slug}/lessons/{lesson}/resources/{resource}/download', [StudentLessonController::class, 'downloadResource'])
+            ->name('student.lessons.resource.download');
 
     // Assessments
 

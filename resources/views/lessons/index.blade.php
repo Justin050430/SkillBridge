@@ -69,6 +69,7 @@
                 <tr>
                     <th class="text-left p-4">Lesson</th>
                     <th class="text-left p-4">Order</th>
+                    <th class="text-left p-4">Materials</th>
                     <th class="text-left p-4">Assessments</th>
                     <th class="text-left p-4">Duration</th>
                     <th class="text-left p-4">Status</th>
@@ -92,11 +93,20 @@
 
                     <td class="p-4">
                         <p class="font-medium text-slate-900">{{ $lesson->title }}</p>
-                        <p class="mt-1 text-sm text-slate-500 line-clamp-1">{{ $lesson->content }}</p>
+                        <p class="mt-1 text-sm text-slate-500 line-clamp-1">
+                            {{ $lesson->description ?: Str::limit(strip_tags($lesson->content), 90) }}
+                        </p>
                     </td>
 
                     <td class="p-4 text-slate-600">
                         {{ $lesson->order_number }}
+                    </td>
+
+                    <td class="p-4 text-slate-600">
+                        <span class="inline-flex items-center gap-1">
+                            <x-heroicon-o-paper-clip class="h-4 w-4 text-slate-400" />
+                            {{ $lesson->resources_count }}
+                        </span>
                     </td>
 
                     <td class="p-4 text-slate-600">
@@ -140,7 +150,7 @@
                 @empty
 
                 <tr>
-                    <td colspan="6" class="py-16 text-center">
+                    <td colspan="7" class="py-16 text-center">
                         <x-heroicon-o-document-text class="w-12 h-12 mx-auto text-slate-300" />
 
                         <h3 class="mt-4 text-xl font-semibold text-slate-700">

@@ -83,9 +83,11 @@
 
                         <div class="min-w-0">
 
-                            <p class="truncate font-medium text-slate-800">
+                            <a
+                                href="{{ route('student.lessons.show', [$enrollment->course, $lesson]) }}"
+                                class="truncate font-medium text-slate-800 hover:text-indigo-700">
                                 {{ $lesson->title }}
-                            </p>
+                            </a>
 
                             <p class="text-xs text-slate-500">
                                 {{ $status }}

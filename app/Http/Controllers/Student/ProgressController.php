@@ -61,8 +61,9 @@ class ProgressController extends Controller
             ]
         );
 
+        // Return to wherever the student was (progress page or lesson page).
         return redirect()
-            ->route('student.progress')
+            ->back()
             ->with('success', 'Your progress has been updated.');
     }
 }

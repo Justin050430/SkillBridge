@@ -6,6 +6,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesLessonResources;
 use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -18,6 +19,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class StoreLessonRequest extends FormRequest
 {
+    use ValidatesLessonResources;
+
     public function authorize(): bool
     {
         return true;
@@ -30,10 +33,16 @@ class StoreLessonRequest extends FormRequest
     {
         return [
             'title' => ValidationRules::title(),
+            'description' => 'nullable|string|max:2000',
             'content' => ValidationRules::longText(20000),
             'order_number' => 'required|integer|min:1|max:9999',
             'estimated_duration' => 'nullable|integer|min:1|max:600',
             'status' => 'required|in:Draft,Published',
-        ];
+        ] + $this->resourceRules();
+    }
+
+    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        $this->validateLessonResources($validator);
     }
 }

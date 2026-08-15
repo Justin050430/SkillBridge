@@ -10,20 +10,12 @@
 
 @section('content')
 
-<div class="max-w-3xl bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+<div class="max-w-4xl bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
 
-    <form
-        method="POST"
-        action="{{ route('courses.lessons.update', [$course, $lesson]) }}">
-
-        @csrf
-        @method('PUT')
-
-        @include('lessons._form', [
-            'buttonText' => 'Update Lesson'
-        ])
-
-    </form>
+    @include('lessons._form', [
+        'buttonText' => 'Update Lesson',
+        'action' => route('courses.lessons.update', [$course, $lesson]),
+    ])
 
 </div>
 

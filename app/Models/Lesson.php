@@ -18,6 +18,7 @@ class Lesson extends Model
     protected $fillable = [
         'course_id',
         'title',
+        'description',
         'content',
         'order_number',
         'estimated_duration',
@@ -37,5 +38,21 @@ class Lesson extends Model
     public function progresses(): HasMany
     {
         return $this->hasMany(Progress::class);
+    }
+
+    /**
+     * Learning materials attached to this lesson, in display order.
+     */
+    public function resources(): HasMany
+    {
+        return $this->hasMany(LessonResource::class)->orderBy('display_order');
+    }
+
+    /**
+     * Whether the lesson may be seen by students.
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'Published');
     }
 }

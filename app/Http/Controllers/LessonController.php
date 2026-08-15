@@ -10,9 +10,12 @@ use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\LessonResource;
 use App\Models\User;
+use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Lesson Management shared by Admin and Mentor.
@@ -68,7 +71,7 @@ class LessonController extends Controller
         ]);
 
         $query = $course->lessons()
-            ->withCount('assessments');
+            ->withCount(['assessments', 'resources']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -104,7 +107,9 @@ class LessonController extends Controller
     {
         $this->ensureAccessible($course);
 
-        $course->lessons()->create($request->validated());
+        $lesson = $course->lessons()->create($this->lessonData($request));
+
+        $this->syncResources($lesson, $request->validated('resources') ?? []);
 
         return redirect()
             ->route('courses.lessons.index', $course)
@@ -124,11 +129,156 @@ class LessonController extends Controller
         $this->ensureAccessible($course);
         $this->ensureBelongsToCourse($course, $lesson);
 
-        $lesson->update($request->validated());
+        $lesson->update($this->lessonData($request));
+
+        $this->syncResources($lesson, $request->validated('resources') ?? []);
 
         return redirect()
             ->route('courses.lessons.index', $course)
             ->with('success', 'Lesson updated successfully.');
+    }
+
+    /**
+     * Sanitise and return lesson content for the editor's preview modal.
+     * The returned HTML is always passed through the same sanitizer used on
+     * save, so the preview can never render raw, unsanitised input.
+     */
+    public function preview(Request $request, Course $course)
+    {
+        $this->ensureAccessible($course);
+
+        $request->validate([
+            'content' => 'nullable|string|max:20000',
+        ]);
+
+        return response()->json([
+            'status' => 'S',
+            'html' => ContentSanitizer::sanitize($request->input('content')),
+        ]);
+    }
+
+    /**
+     * Stream an attached file (document/image) to an Admin/Mentor who is
+     * authorised for the course. Files are served from the private disk
+     * through this route so they are never publicly accessible.
+     */
+    public function downloadResource(Course $course, Lesson $lesson, LessonResource $resource)
+    {
+        $this->ensureAccessible($course);
+        $this->ensureBelongsToCourse($course, $lesson);
+
+        abort_unless((int) $resource->lesson_id === (int) $lesson->id, 404);
+        abort_unless(in_array($resource->type, ['File', 'Image'], true), 404);
+        abort_unless($resource->file_path && Storage::disk('local')->exists($resource->file_path), 404);
+
+        return Storage::disk('local')->download(
+            $resource->file_path,
+            $resource->file_name ?: $resource->title
+        );
+    }
+
+    /**
+     * The validated lesson fields with rich content sanitised and the
+     * resources array removed (resources are synced separately).
+     */
+    protected function lessonData(StoreLessonRequest $request): array
+    {
+        $data = $request->validated();
+
+        $data['content'] = ContentSanitizer::sanitize($data['content'] ?? '');
+        $data['description'] = isset($data['description']) && trim($data['description']) !== ''
+            ? trim($data['description'])
+            : null;
+
+        unset($data['resources']);
+
+        return $data;
+    }
+
+    /**
+     * Reconcile the submitted resources with the lesson's current resources:
+     * create new rows, update existing ones, delete rows removed in the form
+     * (and delete their stored files).
+     */
+    protected function syncResources(Lesson $lesson, array $resources = []): void
+    {
+        $submittedIds = collect($resources)
+            ->pluck('id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $lesson->resources()
+            ->whereNotIn('id', $submittedIds ?: [0])
+            ->get()
+            ->each(function (LessonResource $resource) {
+                $this->deleteStoredFile($resource);
+                $resource->delete();
+            });
+
+        $order = 0;
+
+        foreach ($resources as $resourceData) {
+            $order++;
+
+            $id = ! empty($resourceData['id']) ? (int) $resourceData['id'] : null;
+            $type = $resourceData['type'] ?? 'Link';
+            $model = $id ? $lesson->resources()->find($id) : null;
+
+            $attributes = [
+                'type' => $type,
+                'title' => trim((string) ($resourceData['title'] ?? '')),
+                'description' => isset($resourceData['description']) && trim((string) $resourceData['description']) !== ''
+                    ? trim((string) $resourceData['description'])
+                    : null,
+                'display_order' => $order,
+            ];
+
+            if (in_array($type, ['Link', 'Video'], true)) {
+                $attributes['url'] = trim((string) ($resourceData['url'] ?? ''));
+                $this->clearFileFields($model, $attributes);
+            } else {
+                $attributes['url'] = null;
+
+                if (! empty($resourceData['file'])) {
+                    $this->deleteStoredFile($model);
+
+                    $attributes['file_path'] = $resourceData['file']->store('lessons/'.$lesson->id, 'local');
+                    $attributes['file_name'] = $resourceData['file']->getClientOriginalName();
+                    $attributes['mime_type'] = $resourceData['file']->getMimeType();
+                    $attributes['file_size'] = $resourceData['file']->getSize();
+                }
+            }
+
+            if ($model) {
+                $model->update($attributes);
+            } else {
+                $lesson->resources()->create($attributes);
+            }
+        }
+    }
+
+    /**
+     * Remove the stored file from the disk, if any.
+     */
+    protected function deleteStoredFile(?LessonResource $resource): void
+    {
+        if ($resource && $resource->file_path) {
+            Storage::disk('local')->delete($resource->file_path);
+        }
+    }
+
+    /**
+     * When a resource changes to a Link/Video, drop any previously stored file.
+     */
+    protected function clearFileFields(?LessonResource $model, array &$attributes): void
+    {
+        $this->deleteStoredFile($model);
+
+        $attributes['file_path'] = null;
+        $attributes['file_name'] = null;
+        $attributes['mime_type'] = null;
+        $attributes['file_size'] = null;
     }
 
     public function delete(Course $course, Lesson $lesson)
