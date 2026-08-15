@@ -72,8 +72,11 @@ class LessonController extends Controller
     {
         $this->ensureAccessible($course, $lesson);
 
+        // Note: the resources relation already orders by display_order, so we
+        // must NOT re-add orderBy in the eager-load constraint - SQL Server
+        // rejects duplicate columns in ORDER BY (unlike SQLite/MySQL).
         $lesson->load([
-            'resources' => fn ($query) => $query->orderBy('display_order'),
+            'resources',
             'assessments' => fn ($query) => $query->where('status', 'Published')->withCount('questions'),
         ]);
 

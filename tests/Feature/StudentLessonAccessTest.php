@@ -304,4 +304,51 @@ class StudentLessonAccessTest extends TestCase
             ->assertSee('OWASP Guide')
             ->assertSee('Materials');
     }
+
+    /**
+     * Regression: the Lesson::resources() relation already orders by
+     * display_order. Re-adding orderBy in the eager-load constraint produced
+     * `ORDER BY display_order ASC, display_order ASC`, which SQL Server
+     * rejects with a 500 ("A column has been specified more than once in the
+     * order by list"). Assert the generated SQL does not duplicate it.
+     */
+    public function test_lesson_show_resources_query_has_no_duplicate_order_by(): void
+    {
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $student = $this->makeUser('Student', 'student@test.com');
+        $course = $this->makeCourseFor($mentor);
+        $this->enroll($student, $course);
+
+        $lesson = $this->makeLesson($course);
+
+        \App\Models\LessonResource::create([
+            'lesson_id' => $lesson->id,
+            'type' => 'File',
+            'title' => 'Notes',
+            'file_path' => 'lessons/'.$lesson->id.'/notes.pdf',
+            'file_name' => 'notes.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => 1024,
+            'display_order' => 1,
+        ]);
+
+        $queries = [];
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queries) {
+            $queries[] = $query->sql;
+        });
+
+        $this->actingAs($student)
+            ->get("/student/courses/{$course->slug}/lessons/{$lesson->id}")
+            ->assertOk();
+
+        $resourcesQuery = collect($queries)
+            ->first(fn ($sql) => str_contains($sql, 'lesson_resources'));
+
+        $this->assertNotNull($resourcesQuery, 'Expected a lesson_resources query.');
+        $this->assertSame(
+            1,
+            substr_count($resourcesQuery, 'display_order'),
+            'display_order must appear exactly once in the resources query.'
+        );
+    }
 }
