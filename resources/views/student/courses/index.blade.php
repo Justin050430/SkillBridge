@@ -7,7 +7,7 @@
     </x-slot>
 
     <div
-        class="max-w-7xl mx-auto p-6"
+        class="max-w-7xl mx-auto p-6 space-y-10"
         x-data="courseCatalogue()"
         x-init="loadCourses()">
 
@@ -43,96 +43,71 @@
             <p class="mt-2 text-slate-500">Please check back when new courses are published.</p>
         </div>
 
-        <div
-            x-show="!loading && !error && courses.length"
-            x-cloak
-            class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {{-- MY COURSES --}}
+        <section x-show="!loading && !error && myCourses().length" x-cloak>
+            <div class="mb-5 flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                    <x-heroicon-o-academic-cap class="h-6 w-6"/>
+                </span>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">My Courses</h3>
+                    <p class="text-sm text-slate-500" x-text="myCourses().length + ' active course' + (myCourses().length === 1 ? '' : 's')"></p>
+                </div>
+            </div>
 
-            <template x-for="course in courses" :key="course.id">
-                <article class="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-                    <div class="flex h-40 shrink-0 items-center justify-center bg-indigo-50">
-                        <img
-                            x-show="course.thumbnail"
-                            :src="course.thumbnail"
-                            :alt="course.title"
-                            class="h-full w-full object-cover">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <template x-for="course in myCourses()" :key="course.id">
+                    @include('student.courses._course-card', ['variant' => 'my'])
+                </template>
+            </div>
+        </section>
 
-                        <x-heroicon-o-book-open
-                            x-show="!course.thumbnail"
-                            class="h-12 w-12 text-indigo-300" />
-                    </div>
+        {{-- My Courses empty state --}}
+        <section x-show="!loading && !error && courses.length && myCourses().length === 0" x-cloak>
+            <div class="rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 p-8 text-center">
+                <x-heroicon-o-academic-cap class="mx-auto h-10 w-10 text-indigo-300"/>
+                <h3 class="mt-3 text-lg font-semibold text-slate-700">No active courses</h3>
+                <p class="mt-1 text-sm text-slate-500">Browse the available courses below to find something to learn.</p>
+            </div>
+        </section>
 
-                    <div class="flex flex-1 flex-col p-6">
-                        <p class="text-sm font-medium text-indigo-600" x-text="course.category"></p>
-                        <h3 class="mt-2 text-xl font-semibold text-slate-900" x-text="course.title"></h3>
-                        <p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-600" x-text="course.description"></p>
+        {{-- COMPLETED COURSES --}}
+        <section x-show="!loading && !error && completedCourses().length" x-cloak>
+            <div class="mb-5 flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                    <x-heroicon-o-check-badge class="h-6 w-6"/>
+                </span>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">Completed Courses</h3>
+                    <p class="text-sm text-slate-500" x-text="completedCourses().length + ' completed course' + (completedCourses().length === 1 ? '' : 's')"></p>
+                </div>
+            </div>
 
-                        <div class="mt-auto pt-5">
-                            <div class="border-t border-slate-100 pt-4 text-sm text-slate-500">
-                                Mentor: <span class="font-medium text-slate-700" x-text="course.mentor"></span>
-                            </div>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <template x-for="course in completedCourses()" :key="course.id">
+                    @include('student.courses._course-card', ['variant' => 'completed'])
+                </template>
+            </div>
+        </section>
 
-                            <div class="mt-4">
+        {{-- EXPLORE COURSES --}}
+        <section x-show="!loading && !error && exploreCourses().length" x-cloak>
+            <div class="mb-5 flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                    <x-heroicon-o-book-open class="h-6 w-6"/>
+                </span>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">Explore Courses</h3>
+                    <p class="text-sm text-slate-500" x-text="exploreCourses().length + ' course' + (exploreCourses().length === 1 ? '' : 's') + ' available'"></p>
+                </div>
+            </div>
 
-                                {{-- Not enrolled --}}
-                                <button
-                                    type="button"
-                                    x-show="enrollmentStatus(course) === null"
-                                    x-on:click="enroll(course)"
-                                    x-bind:disabled="busy"
-                                    class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
-                                    Enroll
-                                </button>
-
-                                {{-- Active: enrolled + drop --}}
-                                <div x-show="enrollmentStatus(course) === 'Active'" class="flex items-center gap-2">
-                                    <span class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
-                                        <x-heroicon-o-check-circle class="h-5 w-5"/>
-                                        Enrolled
-                                    </span>
-
-                                    <button
-                                        type="button"
-                                        x-on:click="drop(course)"
-                                        x-bind:disabled="busy"
-                                        class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60">
-                                        Drop
-                                    </button>
-                                </div>
-
-                                {{-- Dropped: allow re-enrolment --}}
-                                <button
-                                    type="button"
-                                    x-show="enrollmentStatus(course) === 'Dropped'"
-                                    x-on:click="enroll(course)"
-                                    x-bind:disabled="busy"
-                                    class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
-                                    Enroll Again
-                                </button>
-
-                                {{-- Enrollment limit reached (3 drops) --}}
-                                <div
-                                    x-show="enrollmentStatus(course) === 'LimitReached'"
-                                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700">
-                                    <x-heroicon-o-exclamation-triangle class="h-5 w-5"/>
-                                    Enrollment Limit Reached
-                                </div>
-
-                                {{-- Completed --}}
-                                <span
-                                    x-show="enrollmentStatus(course) === 'Completed'"
-                                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">
-                                    <x-heroicon-o-check-circle class="h-5 w-5"/>
-                                    Completed
-                                </span>
-
-                            </div>
-                        </div>
-                    </div>
-                </article>
-            </template>
-
-        </div>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <template x-for="course in exploreCourses()" :key="course.id">
+                    @include('student.courses._course-card', ['variant' => 'explore'])
+                </template>
+            </div>
+        </section>
 
     </div>
 
@@ -143,6 +118,7 @@
                 loading: true,
                 error: '',
                 enrollmentStates: @json($enrollmentStates),
+                courseProgress: @json($courseProgress),
                 csrf: @json(csrf_token()),
                 busy: false,
                 message: '',
@@ -173,6 +149,45 @@
 
                 enrollmentStatus(course) {
                     return this.enrollmentStates[course.id] ?? null;
+                },
+
+                myCourses() {
+                    return this.courses.filter((course) => this.enrollmentStatus(course) === 'Active');
+                },
+
+                completedCourses() {
+                    return this.courses.filter((course) => this.enrollmentStatus(course) === 'Completed');
+                },
+
+                exploreCourses() {
+                    return this.courses.filter((course) => {
+                        const state = this.enrollmentStatus(course);
+                        return state === null || state === 'Dropped' || state === 'LimitReached';
+                    });
+                },
+
+                progressFor(course) {
+                    return this.courseProgress[course.id] ?? {
+                        percent: 0,
+                        completed_lessons: 0,
+                        total_lessons: 0,
+                        assessments_passed: 0,
+                        assessments_total: 0,
+                    };
+                },
+
+                progressPercent(course) {
+                    return this.progressFor(course).percent;
+                },
+
+                progressDetail(course) {
+                    const p = this.progressFor(course);
+                    const lessons = p.total_lessons === 1 ? '1 lesson' : p.total_lessons + ' lessons';
+                    let detail = p.completed_lessons + ' of ' + lessons + ' completed';
+                    if (p.assessments_total > 0) {
+                        detail += ' · ' + p.assessments_passed + ' of ' + p.assessments_total + ' assessments passed';
+                    }
+                    return detail;
                 },
 
                 async enroll(course) {

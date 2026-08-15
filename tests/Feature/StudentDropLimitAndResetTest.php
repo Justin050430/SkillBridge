@@ -136,6 +136,42 @@ class StudentDropLimitAndResetTest extends TestCase
             ->first();
     }
 
+    public function test_catalogue_view_receives_progress_summary_for_active_enrollments(): void
+    {
+        $student = $this->makeUser('Student', 'student@test.com');
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $course = $this->makeCourseFor($mentor);
+
+        $lesson1 = $this->makeLesson($course, 1);
+        $lesson2 = $this->makeLesson($course, 2);
+        $assessment = $this->makeAssessment($lesson2);
+        $this->makeQuestion($assessment);
+
+        $this->enroll($student, $course);
+
+        // Lesson 1 completed manually; lesson 2 completed by passing its
+        // assessment (ProgressUpdater marks the linked lesson Completed).
+        $this->actingAs($student)
+            ->post('/student/progress/'.$lesson1->id, ['status' => 'Completed'])
+            ->assertRedirect();
+
+        $this->takeAndPassAssessment($student, $course, $assessment);
+
+        $this->actingAs($student)
+            ->get('/student/courses')
+            ->assertOk()
+            ->assertViewHas('courseProgress', function ($courseProgress) use ($course) {
+                $summary = $courseProgress->get($course->id);
+
+                return $summary
+                    && $summary['total_lessons'] === 2
+                    && $summary['completed_lessons'] === 2
+                    && $summary['percent'] === 100
+                    && $summary['assessments_total'] === 1
+                    && $summary['assessments_passed'] === 1;
+            });
+    }
+
     // ---- Test 1: full reset cycle ----
 
     public function test_reenrollment_starts_from_zero_progress(): void
