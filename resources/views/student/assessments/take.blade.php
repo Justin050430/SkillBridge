@@ -3,7 +3,7 @@
         <div>
             <h2 class="text-2xl font-bold text-slate-800">{{ $assessment->title }}</h2>
             <p class="mt-1 text-slate-500">
-                {{ $assessment->lesson->course->title }} — Attempt #{{ $attempt->attempt_number }}
+                {{ $assessment->lesson?->course?->title ?? $assessment->title }} — Attempt #{{ $attempt->attempt_number }}
             </p>
         </div>
     </x-slot>

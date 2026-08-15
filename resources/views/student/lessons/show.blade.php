@@ -1,12 +1,18 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <a href="{{ route('student.progress') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                ← My Progress
-            </a>
+            <div class="flex items-center gap-2 text-sm">
+                <a href="{{ route('student.lessons.index', $course) }}" class="font-medium text-indigo-600 hover:text-indigo-700">
+                    ← {{ $course->title }}
+                </a>
+                <span class="text-slate-300">·</span>
+                <a href="{{ route('student.progress') }}" class="font-medium text-slate-500 hover:text-indigo-600">
+                    My Progress
+                </a>
+            </div>
             <h2 class="mt-1 text-2xl font-bold text-slate-800">{{ $lesson->title }}</h2>
             <p class="mt-1 text-slate-500">
-                {{ $course->title }} · Lesson {{ $lesson->order_number }}
+                Lesson {{ $lesson->order_number }}
                 @if ($lesson->estimated_duration)
                     · {{ $lesson->estimated_duration }} min
                 @endif

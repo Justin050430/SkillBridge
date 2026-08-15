@@ -78,6 +78,13 @@
                         </button>
                     </div>
 
+                    <a
+                        :href="'/student/courses/' + course.slug + '/lessons'"
+                        class="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                        <x-heroicon-o-book-open class="h-5 w-5"/>
+                        View Lessons
+                    </a>
+
                 @elseif ($variant === 'completed')
 
                     <span class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-600">

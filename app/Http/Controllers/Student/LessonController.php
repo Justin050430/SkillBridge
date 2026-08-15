@@ -11,6 +11,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LessonResource;
+use App\Models\Progress;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,6 +26,48 @@ use Illuminate\Support\Facades\Storage;
  */
 class LessonController extends Controller
 {
+    /**
+     * Course lesson overview - the student's entry point into a course's
+     * published lessons, in learning order, with progress + assessment info.
+     */
+    public function index(Course $course)
+    {
+        $this->ensureEnrolled($course);
+
+        $enrollment = Enrollment::where('student_id', Auth::id())
+            ->where('course_id', $course->id)
+            ->where('status', 'Active')
+            ->firstOrFail();
+
+        $lessons = $course->lessons()
+            ->where('status', 'Published')
+            ->withCount('resources')
+            ->with(['assessments' => fn ($query) => $query->where('status', 'Published')->withCount('questions')])
+            ->orderBy('order_number')
+            ->get();
+
+        // Lesson progress for the student's ACTIVE enrollment only.
+        $progressRecords = Progress::where('enrollment_id', $enrollment->id)
+            ->get()
+            ->keyBy('lesson_id');
+
+        $totalLessons = $lessons->count();
+        $completedLessons = $lessons->filter(
+            fn ($lesson) => ($progressRecords->get($lesson->id)?->status) === 'Completed'
+        )->count();
+        $percent = $totalLessons > 0 ? (int) round(($completedLessons / $totalLessons) * 100) : 0;
+
+        return view('student.lessons.index', compact(
+            'course',
+            'enrollment',
+            'lessons',
+            'progressRecords',
+            'totalLessons',
+            'completedLessons',
+            'percent'
+        ));
+    }
+
     public function show(Course $course, Lesson $lesson)
     {
         $this->ensureAccessible($course, $lesson);
@@ -78,6 +121,14 @@ class LessonController extends Controller
         abort_unless($lesson->status === 'Published', 404);
         abort_unless((int) $lesson->course_id === (int) $course->id, 404);
 
+        $this->ensureEnrolled($course);
+    }
+
+    /**
+     * The authenticated student must have an ACTIVE enrollment in the course.
+     */
+    protected function ensureEnrolled(Course $course): void
+    {
         $enrolled = Enrollment::where('student_id', Auth::id())
             ->where('course_id', $course->id)
             ->where('status', 'Active')
@@ -100,7 +151,7 @@ class LessonController extends Controller
             return null;
         }
 
-        return \App\Models\Progress::where('enrollment_id', $enrollment->id)
+        return Progress::where('enrollment_id', $enrollment->id)
             ->where('lesson_id', $lesson->id)
             ->value('status');
     }

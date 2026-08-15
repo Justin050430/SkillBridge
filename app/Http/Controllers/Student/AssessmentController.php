@@ -48,10 +48,13 @@ class AssessmentController extends Controller
     }
 
     /**
-     * Only enrolled students may reach an assessment.
+     * Only enrolled students may reach an assessment. An orphaned assessment
+     * (missing parent lesson) is treated as not found rather than a 500.
      */
     protected function ensureEnrolled(Assessment $assessment): void
     {
+        abort_unless($assessment->lesson !== null, 404);
+
         abort_unless(
             in_array($assessment->lesson->course_id, $this->enrolledCourseIds(), true),
             403,
@@ -64,6 +67,10 @@ class AssessmentController extends Controller
      */
     protected function enrollmentId(Assessment $assessment): ?int
     {
+        if ($assessment->lesson === null) {
+            return null;
+        }
+
         $value = Enrollment::where('student_id', Auth::id())
             ->where('course_id', $assessment->lesson->course_id)
             ->where('status', 'Active')
@@ -240,10 +247,11 @@ class AssessmentController extends Controller
         $this->ensureEnrolled($assessment);
         $this->ensurePublishedForStudents($assessment);
 
+        // Scope to the student's ACTIVE enrollment(s) only, so a submitted
+        // attempt belonging to a previously DROPPED enrollment can never be
+        // shown as the result of a fresh (re)enrollment.
         $attempt = AssessmentAttempt::where('assessment_id', $assessment->id)
-            ->whereHas('enrollment', function ($enrollment) {
-                $enrollment->where('student_id', Auth::id());
-            })
+            ->whereIn('enrollment_id', $this->activeEnrollmentIds())
             ->whereNotNull('submitted_at')
             ->latest('submitted_at')
             ->first();

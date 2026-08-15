@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div>
             <h2 class="text-2xl font-bold text-slate-800">{{ $assessment->title }} — Result</h2>
-            <p class="mt-1 text-slate-500">{{ $assessment->lesson->course->title }}</p>
+            <p class="mt-1 text-slate-500">{{ $assessment->lesson?->course?->title ?? $assessment->title }}</p>
         </div>
     </x-slot>
 

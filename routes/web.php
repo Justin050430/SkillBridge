@@ -227,6 +227,9 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
 
     // Lesson reading + resource downloads (enrolled students only).
 
+    Route::get('/student/courses/{course:slug}/lessons', [StudentLessonController::class, 'index'])
+            ->name('student.lessons.index');
+
     Route::get('/student/courses/{course:slug}/lessons/{lesson}', [StudentLessonController::class, 'show'])
             ->name('student.lessons.show');
 

@@ -23,9 +23,17 @@
 
                 <div>
 
-                    <h3 class="text-lg font-semibold text-slate-900">
-                        {{ $enrollment->course->title }}
-                    </h3>
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-lg font-semibold text-slate-900">
+                            {{ $enrollment->course->title }}
+                        </h3>
+
+                        <a
+                            href="{{ route('student.lessons.index', $enrollment->course) }}"
+                            class="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600 transition hover:bg-indigo-100">
+                            View Lessons
+                        </a>
+                    </div>
 
                     <p class="mt-1 text-sm text-slate-500">
                         {{ $completed }} of {{ $totalLessons }} lessons completed

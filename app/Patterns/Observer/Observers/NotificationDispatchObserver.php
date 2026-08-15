@@ -31,7 +31,7 @@ class NotificationDispatchObserver implements Observer
         $assessment = $subject->getAssessment();
 
         $student = $attempt->enrollment?->student;
-        $mentor = $assessment->lesson->course->mentor;
+        $mentor = $assessment->lesson?->course?->mentor;
 
         $invoker = app(NotificationInvoker::class);
         $notifier = app(NotificationService::class);
