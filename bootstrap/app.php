@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
         'role' => \App\Http\Middleware\RoleMiddleware::class,
     ]);
 
+    // Enforce one active session per account, server-side.
+    $middleware->appendToGroup('web', \App\Http\Middleware\EnsureSingleActiveSession::class);
+
     // Trust Azure App Service reverse proxy headers.
     $middleware->trustProxies(at: '*');
 

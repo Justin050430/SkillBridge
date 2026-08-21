@@ -12,6 +12,7 @@ use App\Patterns\Command\NotificationInvoker;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -30,6 +31,13 @@ class PasswordController extends Controller
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        // After a password change, drop every other active session for this
+        // account (keep the current one) so other devices must sign in again.
+        DB::table('sessions')
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
 
         // Security notification to the affected user (Command pattern).
         app(NotificationInvoker::class)->run(

@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Deactivate User')
+@section('title', 'Delete User')
 
 @section('header')
 <x-ui.page-header
-    title="Deactivate User"
-    subtitle="Deactivate the account without deleting its data." />
+    title="Delete User"
+    subtitle="Permanently remove the account (soft delete) without destroying its data." />
 @endsection
 
 @section('content')
@@ -19,7 +19,7 @@
         </h2>
 
         <p class="mt-4 text-slate-600">
-            You are about to deactivate
+            You are about to delete
             <strong>{{ $user->first_name }} {{ $user->last_name }}</strong>.
         </p>
 
@@ -27,6 +27,11 @@
             The account will be marked as <strong>Deleted</strong> and can no
             longer sign in. The record, its ID and all historical data are
             preserved and can be reviewed using the status filter.
+        </p>
+
+        <p class="mt-2 text-slate-500">
+            To simply suspend an account so it can be reactivated later, use
+            <strong>Deactivate</strong> instead.
         </p>
 
         <form
@@ -49,7 +54,7 @@
                 type="submit"
                 class="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white">
 
-                Deactivate User
+                Delete User
 
             </button>
 

@@ -256,7 +256,12 @@ class StudentAssessmentTest extends TestCase
             ->assertRedirect('/student/assessments');
     }
 
-    public function test_student_can_mark_lesson_complete(): void
+    /**
+     * The manual "mark as complete" endpoint has been removed - lesson
+     * progress may only be recorded automatically by passing the assessment.
+     * A direct request to the old endpoint must not exist (404).
+     */
+    public function test_manual_lesson_completion_route_has_been_removed(): void
     {
         $student = $this->makeUser('Student', 'student@test.com');
         $mentor = $this->makeUser('Mentor', 'mentor@test.com');
@@ -266,12 +271,12 @@ class StudentAssessmentTest extends TestCase
 
         $this->actingAs($student)
             ->post('/student/progress/'.$lesson->id, ['status' => 'Completed'])
-            ->assertRedirect();
+            ->assertNotFound();
 
-        $this->assertDatabaseHas('progress', [
+        // No progress record is created by the removed endpoint.
+        $this->assertDatabaseMissing('progress', [
             'enrollment_id' => $enrollment->id,
             'lesson_id' => $lesson->id,
-            'status' => 'Completed',
         ]);
     }
 }

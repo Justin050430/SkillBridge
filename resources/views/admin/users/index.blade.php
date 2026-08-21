@@ -150,13 +150,34 @@
 
                         </a>
 
+                        @if($user->status === 'Active')
+
+                        <form
+                            method="POST"
+                            action="{{ route('admin.users.deactivate', $user) }}"
+                            onsubmit="return confirm('Deactivate this account? The user will not be able to sign in until reactivated.')">
+
+                            @csrf
+
+                            <button
+                                type="submit"
+                                class="px-3 py-1 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100">
+
+                                Deactivate
+
+                            </button>
+
+                        </form>
+
+                        @endif
+
                         @if($user->status !== 'Deleted')
 
                         <a
                             href="{{ route('admin.users.delete',$user) }}"
                             class="px-3 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100">
 
-                            Deactivate
+                            Delete
 
                         </a>
 

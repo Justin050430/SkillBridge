@@ -11,6 +11,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -31,6 +32,16 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        // Single active session: a new login invalidates every other session
+        // for this account (across browsers/devices). Multiple tabs in the
+        // same browser share one session cookie, so they are unaffected. The
+        // middleware (EnsureSingleActiveSession) also guards against a stale
+        // remember-me restore creating a competing session.
+        DB::table('sessions')
+            ->where('user_id', $request->user()->getAuthIdentifier())
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
 
         // Redirect to the central dashboard route, which dispatches by role.
         return redirect()->intended(route('dashboard'));

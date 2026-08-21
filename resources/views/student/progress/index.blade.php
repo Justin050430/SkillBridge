@@ -111,22 +111,6 @@
                             {{ $status }}
                         </span>
 
-                        @if($status !== 'Completed')
-
-                            <form method="POST" action="{{ route('student.progress.update', $lesson) }}">
-                                @csrf
-
-                                <input type="hidden" name="status" value="Completed">
-
-                                <button
-                                    type="submit"
-                                    class="rounded-lg bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-600 transition hover:bg-indigo-100">
-                                    Mark Complete
-                                </button>
-                            </form>
-
-                        @endif
-
                     </div>
 
                 </div>

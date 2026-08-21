@@ -21,10 +21,16 @@ class ProfileController extends Controller
 {
     /**
      * Display the user's profile form.
+     *
+     * One shared profile page for every role: students keep the top-nav shell
+     * (x-app-layout) while admins and mentors get the sidebar shell
+     * (layouts.admin). Both shells include the same shared profile content.
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        $view = $request->user()->isStudent() ? 'profile.edit' : 'profile.manage';
+
+        return view($view, [
             'user' => $request->user(),
         ]);
     }
@@ -58,6 +64,16 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Never allow the last Active Admin to remove their own account,
+        // otherwise all administrator access is lost (mirrors the admin
+        // UserController guard). The error surfaces inside the confirmation
+        // modal's userDeletion bag.
+        if ($user->isAdmin() && User::admins()->active()->count() === 1) {
+            return back()->withErrors([
+                'password' => 'The last Active Admin account cannot be deleted.',
+            ], 'userDeletion');
+        }
 
         Auth::logout();
 

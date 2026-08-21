@@ -134,9 +134,13 @@ class QuestionController extends Controller
 
     /**
      * Prevent questions being accessed through the wrong assessment.
+     *
+     * FK columns can arrive as strings on MySQL/sqlsrv, so both sides are
+     * cast to int before the strict comparison (same pattern as the mentor
+     * ownership check) to avoid a false 404 on those drivers.
      */
     protected function ensureBelongsToAssessment(Assessment $assessment, Question $question): void
     {
-        abort_unless($question->assessment_id === $assessment->id, 404);
+        abort_unless((int) $question->assessment_id === (int) $assessment->id, 404);
     }
 }

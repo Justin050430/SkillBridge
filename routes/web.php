@@ -64,6 +64,10 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::put('/admin/users/{user}',
                     [UserController::class, 'update'])
             ->name('admin.users.update');
+
+    Route::post('/admin/users/{user}/deactivate',
+                    [UserController::class, 'deactivate'])
+            ->name('admin.users.deactivate');
     
     Route::get('/admin/users/{user}/delete',
                     [UserController::class, 'delete'])
@@ -250,13 +254,11 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     Route::get('/student/assessments/{assessment:slug}/result', [StudentAssessmentController::class, 'result'])
             ->name('student.assessments.result');
 
-    // Progress
+    // Progress (read-only - lessons are completed automatically when a
+    // student passes the lesson's assessment, not via a manual endpoint).
 
     Route::get('/student/progress', [ProgressController::class, 'index'])
             ->name('student.progress');
-
-    Route::post('/student/progress/{lesson}', [ProgressController::class, 'update'])
-            ->name('student.progress.update');
 });
 
 // User profile management.

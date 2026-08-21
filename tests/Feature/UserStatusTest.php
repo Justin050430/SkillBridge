@@ -173,4 +173,95 @@ class UserStatusTest extends TestCase
 
         $this->assertSame('Inactive', $student->fresh()->status);
     }
+
+    // ---- Dedicated deactivate action (Active -> Inactive) ----
+
+    public function test_admin_can_deactivate_active_user_to_inactive(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $student = $this->makeUser('Student', 'student@test.com');
+
+        $this->actingAs($admin)
+            ->post('/admin/users/'.$student->id.'/deactivate')
+            ->assertRedirect('/admin/users');
+
+        $this->assertSame('Inactive', $student->fresh()->status);
+
+        // Clear the guard so the login request is not treated as an
+        // already-authenticated user (actingAs caches the user in the guard).
+        $this->app['auth']->forgetGuards();
+        $this->app->forgetInstance('auth.driver');
+
+        // The inactive user can no longer sign in.
+        $this->post('/login', [
+            'email' => 'student@test.com',
+            'password' => 'password',
+        ])->assertSessionHasErrors('email');
+    }
+
+    public function test_admin_cannot_deactivate_own_account(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+
+        $this->actingAs($admin)
+            ->post('/admin/users/'.$admin->id.'/deactivate')
+            ->assertRedirect('/admin/users');
+
+        $this->assertSame('Active', $admin->fresh()->status);
+    }
+
+    public function test_last_active_admin_cannot_be_deactivated(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+
+        $this->actingAs($admin)
+            ->post('/admin/users/'.$admin->id.'/deactivate')
+            ->assertRedirect('/admin/users');
+
+        $this->assertSame('Active', $admin->fresh()->status);
+    }
+
+    public function test_deactivating_a_deleted_user_does_not_resurrect_it(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $deleted = $this->makeUser('Student', 'deleted@test.com', 'Deleted');
+
+        // Direct request cannot turn a Deleted account into Inactive.
+        $this->actingAs($admin)
+            ->post('/admin/users/'.$deleted->id.'/deactivate')
+            ->assertRedirect('/admin/users');
+
+        $this->assertSame('Deleted', $deleted->fresh()->status);
+    }
+
+    public function test_reactivating_an_inactive_user_works(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $student = $this->makeUser('Student', 'student@test.com', 'Inactive');
+
+        $this->actingAs($admin)
+            ->put('/admin/users/'.$student->id, [
+                'first_name' => 'Test',
+                'last_name' => 'Student',
+                'email' => 'student@test.com',
+                'role_id' => $student->role_id,
+                'status' => 'Active',
+            ])
+            ->assertRedirect('/admin/users');
+
+        $this->assertSame('Active', $student->fresh()->status);
+
+        // Clear the guard so the login request is not treated as an
+        // already-authenticated user (actingAs caches the user in the guard).
+        $this->app['auth']->forgetGuards();
+        $this->app->forgetInstance('auth.driver');
+
+        // The reactivated user can sign in again.
+        $this->post('/login', [
+            'email' => 'student@test.com',
+            'password' => 'password',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertAuthenticated();
+    }
 }

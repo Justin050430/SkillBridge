@@ -57,6 +57,12 @@
                         @endif
                     </span>
 
+                    @if($summary->hasInProgress)
+                        <span class="font-medium text-amber-600">
+                            An attempt is in progress
+                        </span>
+                    @endif
+
                     @if($summary->bestScore !== null)
                         <span>
                             Best score:
@@ -80,7 +86,9 @@
 
                         <x-heroicon-o-play-circle class="h-5 w-5"/>
 
-                        {{ $summary->attemptCount > 0 ? 'Retake Assessment' : 'Start Assessment' }}
+                        {{ $summary->hasInProgress
+                            ? 'Resume Assessment'
+                            : ($summary->attemptCount > 0 ? 'Retake Assessment' : 'Start Assessment') }}
 
                     </a>
 

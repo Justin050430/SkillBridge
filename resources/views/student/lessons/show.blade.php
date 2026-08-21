@@ -229,37 +229,19 @@
             </section>
         @endif
 
-        {{-- Progress action --}}
-        <section class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl {{ $progress === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500' }}">
-                    <x-heroicon-o-check-circle class="h-6 w-6"/>
-                </span>
-                <div>
-                    <p class="font-semibold text-slate-800">
-                        {{ $progress === 'Completed' ? 'Lesson completed' : 'Lesson progress' }}
-                    </p>
-                    <p class="text-sm text-slate-500">
-                        {{ $progress === 'Completed' ? 'You have finished this lesson.' : 'Mark this lesson as complete when you are done.' }}
-                    </p>
-                </div>
+        {{-- Progress status (recorded automatically by passing the assessment) --}}
+        <section class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl {{ $progress === 'Completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500' }}">
+                <x-heroicon-o-check-circle class="h-6 w-6"/>
+            </span>
+            <div>
+                <p class="font-semibold text-slate-800">
+                    {{ $progress === 'Completed' ? 'Lesson completed' : 'Lesson progress' }}
+                </p>
+                <p class="text-sm text-slate-500">
+                    {{ $progress === 'Completed' ? 'You have finished this lesson.' : 'Complete this lesson\'s assessment to mark it as complete.' }}
+                </p>
             </div>
-
-            @if ($progress !== 'Completed')
-                <form method="POST" action="{{ route('student.progress.update', $lesson) }}">
-                    @csrf
-                    <input type="hidden" name="status" value="Completed">
-                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
-                        <x-heroicon-o-check class="h-5 w-5"/>
-                        Mark as Complete
-                    </button>
-                </form>
-            @else
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-700">
-                    <x-heroicon-o-check-circle class="h-5 w-5"/>
-                    Completed
-                </span>
-            @endif
         </section>
 
         {{-- Previous / next --}}

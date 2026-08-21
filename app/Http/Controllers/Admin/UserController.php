@@ -122,10 +122,59 @@ class UserController extends Controller
                         ->with('success', 'User updated successfully.');
     }
     
+    /**
+     * Deactivate an account: Active -> Inactive.
+     *
+     * This is a reversible status change (admins can reactivate the user via
+     * the edit form). It is deliberately distinct from the "Delete" action,
+     * which soft-deletes the account by marking it as Deleted.
+     */
+    public function deactivate(User $user) {
+        // Deactivation only transitions an Active account to Inactive. It must
+        // not resurrect a Deleted account or touch an already-Inactive one.
+        if ($user->status !== 'Active') {
+
+            return redirect()
+                            ->route('admin.users')
+                            ->with('info', 'Only Active accounts can be deactivated.');
+        }
+
+        // Prevent deactivating your own account (would lock you out).
+        if ($user->id == auth()->id()) {
+
+            return redirect()
+                            ->route('admin.users')
+                            ->with('error', 'You cannot deactivate your own account.');
+        }
+
+        // Prevent deactivating the last Active Admin.
+        if (
+                $user->role->role_name === 'Admin' && User::admins()->active()->count() === 1
+        ) {
+
+            return redirect()
+                            ->route('admin.users')
+                            ->with('warning', 'The last Active Admin cannot be deactivated.');
+        }
+
+        $user->update(['status' => 'Inactive']);
+
+        return redirect()
+                        ->route('admin.users')
+                        ->with('success', 'User deactivated successfully. The account can no longer sign in.');
+    }
+
     public function delete(User $user) {
         return view('admin.users.delete', compact('user'));
     }
 
+    /**
+     * Soft-delete a user by marking the account as Deleted.
+     *
+     * Distinct from deactivation: this is the irreversible-feeling removal for
+     * accounts that are no longer needed, while the record, its IDs and all
+     * historical relationships are preserved for data integrity/history.
+     */
     public function destroy(User $user) {
         // Prevent deleting yourself
         if ($user->id == auth()->id()) {

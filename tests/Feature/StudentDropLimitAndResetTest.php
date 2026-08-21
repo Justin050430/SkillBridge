@@ -148,12 +148,16 @@ class StudentDropLimitAndResetTest extends TestCase
         $this->makeQuestion($assessment);
 
         $this->enroll($student, $course);
+        $enrollment = $this->activeEnrollment($student, $course);
 
-        // Lesson 1 completed manually; lesson 2 completed by passing its
+        // Lesson 1 already completed; lesson 2 completed by passing its
         // assessment (ProgressUpdater marks the linked lesson Completed).
-        $this->actingAs($student)
-            ->post('/student/progress/'.$lesson1->id, ['status' => 'Completed'])
-            ->assertRedirect();
+        Progress::create([
+            'enrollment_id' => $enrollment->id,
+            'lesson_id' => $lesson1->id,
+            'status' => 'Completed',
+            'completed_at' => now(),
+        ]);
 
         $this->takeAndPassAssessment($student, $course, $assessment);
 
@@ -331,20 +335,24 @@ class StudentDropLimitAndResetTest extends TestCase
         $this->enroll($studentA, $course);
         $enrollmentA = $this->activeEnrollment($studentA, $course);
 
-        // A completes a lesson so A has active progress.
-        $this->actingAs($studentA)
-            ->post('/student/progress/'.$lesson->id, ['status' => 'Completed'])
-            ->assertRedirect();
+        // A already has active progress on the lesson.
+        Progress::create([
+            'enrollment_id' => $enrollmentA->id,
+            'lesson_id' => $lesson->id,
+            'status' => 'Completed',
+            'completed_at' => now(),
+        ]);
 
         // B tries to drop A's course -> 404 (B has no active enrollment there).
         $this->actingAs($studentB)
             ->postJson('/student/courses/'.$course->slug.'/drop')
             ->assertNotFound();
 
-        // B tries to touch A's progress via the lesson -> 403 (not enrolled).
+        // The manual progress endpoint no longer exists, so B cannot touch
+        // A's progress through it (route removed -> 404).
         $this->actingAs($studentB)
             ->post('/student/progress/'.$lesson->id, ['status' => 'Completed'])
-            ->assertForbidden();
+            ->assertNotFound();
 
         // A's enrollment and progress are untouched.
         $this->assertSame('Active', $enrollmentA->fresh()->status);
@@ -371,11 +379,12 @@ class StudentDropLimitAndResetTest extends TestCase
         $this->enroll($student, $courseA);
         $this->enroll($student, $courseB);
 
+        $enrollmentA = $this->activeEnrollment($student, $courseA);
         $enrollmentB = $this->activeEnrollment($student, $courseB);
 
         // Build progress in both courses.
-        $this->actingAs($student)->post('/student/progress/'.$lessonA->id, ['status' => 'Completed']);
-        $this->actingAs($student)->post('/student/progress/'.$lessonB->id, ['status' => 'Completed']);
+        Progress::create(['enrollment_id' => $enrollmentA->id, 'lesson_id' => $lessonA->id, 'status' => 'Completed', 'completed_at' => now()]);
+        Progress::create(['enrollment_id' => $enrollmentB->id, 'lesson_id' => $lessonB->id, 'status' => 'Completed', 'completed_at' => now()]);
 
         // Drop course A only.
         $this->drop($student, $courseA);

@@ -27,6 +27,12 @@
                 </a>
 
                 <a
+                    href="{{ route('profile.edit') }}"
+                    class="text-sm font-medium {{ request()->routeIs('profile.*') ? 'text-indigo-600' : 'text-slate-600 hover:text-indigo-600' }}">
+                    Profile
+                </a>
+
+                <a
                     href="{{ route('notifications.index') }}"
                     class="text-sm font-medium {{ request()->routeIs('notifications.*') ? 'text-indigo-600' : 'text-slate-600 hover:text-indigo-600' }}">
                     Notifications

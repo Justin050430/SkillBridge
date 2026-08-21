@@ -113,6 +113,16 @@
 
         </x-ui.sidebar-item>
 
+        <x-ui.sidebar-item
+            :href="route('profile.edit')"
+            :active="request()->routeIs('profile.*')">
+
+            <x-heroicon-o-user-circle class="w-5 h-5"/>
+
+            My Profile
+
+        </x-ui.sidebar-item>
+
     </x-ui.sidebar>
 
     <!-- Main Content -->

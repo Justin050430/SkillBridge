@@ -118,11 +118,18 @@ class AssessmentController extends Controller
         $summaries = $assessments->map(function (Assessment $assessment) use ($attempts) {
             $studentAttempts = $attempts->get($assessment->id, collect());
 
+            // Only SUBMITTED attempts count towards the attempt limit. A
+            // started-but-not-submitted attempt is shown separately as an
+            // in-progress attempt that the student can resume (it is not a
+            // new attempt and does not consume an extra slot).
+            $submitted = $studentAttempts->filter(fn ($attempt) => $attempt->submitted_at !== null);
+
             return (object) [
                 'assessment' => $assessment,
-                'attemptCount' => $studentAttempts->count(),
-                'bestScore' => $studentAttempts->max('percentage'),
-                'passed' => $studentAttempts->contains('is_passed', true),
+                'attemptCount' => $submitted->count(),
+                'hasInProgress' => $studentAttempts->contains(fn ($attempt) => $attempt->submitted_at === null),
+                'bestScore' => $submitted->max('percentage'),
+                'passed' => $submitted->contains('is_passed', true),
                 'canTake' => $this->canTake($assessment, $studentAttempts),
             ];
         });
@@ -272,6 +279,10 @@ class AssessmentController extends Controller
 
     /**
      * Whether the student is allowed to open another attempt.
+     *
+     * The button state must match the backend enforcement in take(): a new
+     * attempt may only be created when the number of SUBMITTED attempts is
+     * below max_attempts, and an in-progress attempt may always be resumed.
      */
     protected function canTake(Assessment $assessment, $studentAttempts): bool
     {
@@ -283,7 +294,11 @@ class AssessmentController extends Controller
             return true;
         }
 
-        return $studentAttempts->count() < $assessment->max_attempts;
+        $submittedCount = $studentAttempts->filter(function ($attempt) {
+            return $attempt->submitted_at !== null;
+        })->count();
+
+        return $submittedCount < $assessment->max_attempts;
     }
 
     /**

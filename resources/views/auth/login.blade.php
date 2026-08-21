@@ -44,4 +44,16 @@
             </x-primary-button>
         </div>
     </form>
+
+    <div class="mt-6 border-t border-gray-200 pt-6 text-center">
+        <p class="text-sm text-gray-600">
+            {{ __('New to SkillBridge?') }}
+        </p>
+
+        <a
+            href="{{ route('register') }}"
+            class="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-indigo-300 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            {{ __('Create a free account') }}
+        </a>
+    </div>
 </x-guest-layout>
