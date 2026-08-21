@@ -69,3 +69,35 @@ php artisan test
 - GitHub Actions (`.github/workflows/main_skillbridge.yml`) builds PHP + frontend assets and deploys to Azure App Service.
 - Production database: Azure Database for MySQL (configured via App Service Application settings).
 - Live: https://skillbridge-cwcwcedpe7cdfqds.malaysiawest-01.azurewebsites.net
+
+## Email (Password Reset)
+
+SkillBridge uses Laravel's built-in password-reset flow (`Password::sendResetLink` / `Password::reset`) with a SkillBridge-branded `ResetPassword` notification (`app/Notifications/ResetPassword.php`). Reset tokens are stored in the `password_reset_tokens` table, expire after 60 minutes, are single-use, and the new password is hashed with Laravel's default mechanism.
+
+### Production (Azure App Service)
+
+Set these **Environment Variables** in the Azure portal (Configuration → Application settings). Credentials are stored only in Azure, never in source code/GitHub:
+
+| Name | Value |
+| --- | --- |
+| `APP_URL` | `https://skillbridge-cwcwcedpe7cdfqds.malaysiawest-01.azurewebsites.net` |
+| `MAIL_MAILER` | `smtp` |
+| `MAIL_HOST` | `smtp.sendgrid.net` |
+| `MAIL_PORT` | `587` |
+| `MAIL_USERNAME` | `apikey` |
+| `MAIL_PASSWORD` | your SendGrid API key (secret) |
+| `MAIL_ENCRYPTION` | `tls` |
+| `MAIL_FROM_ADDRESS` | a sender email verified with SendGrid |
+| `MAIL_FROM_NAME` | `SkillBridge` |
+
+`APP_URL` is what makes the generated reset link point to the deployed SkillBridge site.
+
+### Local development
+
+Set the same `MAIL_*` values in your local `.env` (with a real SMTP provider to receive real emails, or `MAIL_MAILER=log` to write the message to `storage/logs/laravel.log`). Use `php artisan config:clear` after changing `.env`.
+
+### SendGrid setup
+1. Create a SendGrid account and verify a **sender** (single sender verification or your own domain).
+2. Create an API key with "Mail Send" permission (this is `MAIL_PASSWORD`).
+3. Use `smtp.sendgrid.net:587`, username `apikey`, encryption `tls`.
+4. Sender authentication must be verified or SendGrid will reject/flag the mail.
