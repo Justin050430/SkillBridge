@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Patterns\Command\Commands\NotifyAdminsOnSecurityEvent;
 use App\Patterns\Command\NotificationInvoker;
+use App\Services\EnrollmentStatsClient;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -95,7 +96,12 @@ class UserController extends Controller
     public function edit(User $user) {
         $roles = Role::orderBy('role_name')->get();
 
-        return view('admin.users.edit', compact('user', 'roles'));
+        // CONSUME: the Enrollment module's web service supplies this user's
+        // enrolment statistics for the edit page. Degrades gracefully to null
+        // when the service is unavailable.
+        $enrollmentStats = app(EnrollmentStatsClient::class)->userStats($user->id);
+
+        return view('admin.users.edit', compact('user', 'roles', 'enrollmentStats'));
     }
 
     public function update(UpdateUserRequest $request, User $user) {

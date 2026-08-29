@@ -25,6 +25,8 @@
 
     </div>
 
+    @include('partials.assessment-analytics', ['analytics' => $analytics ?? null, 'course' => $course])
+
 </div>
 
 @endsection

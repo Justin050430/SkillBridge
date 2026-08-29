@@ -18,7 +18,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
+use App\Models\Course;
 use App\Models\User;
+use App\Support\Ifa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -85,6 +87,67 @@ class AssessmentApiController extends Controller
                 'timestamp' => now()->toIso8601String(),
                 'message' => 'The assessment statistics are temporarily unavailable.',
             ], 500);
+        }
+    }
+
+    /**
+     * Expose aggregate statistics for every assessment in a course.
+     *
+     * Consumed by the Course Management module (course edit page) so a course
+     * owner can see how its assessments are performing. Mentors are scoped to
+     * their own courses; admins may view any course.
+     */
+    public function courseStats(Request $request, Course $course): JsonResponse
+    {
+        $requestId = Ifa::requestId($request);
+
+        // IFA: requests must be traceable via timestamp and/or requestId.
+        if ($missing = Ifa::assertTraceable($request)) {
+            return $missing;
+        }
+
+        // Access control: mentors may only view statistics for their own
+        // courses; admins may view all.
+        $user = Auth::user();
+
+        if ($user instanceof User && $user->isMentor()) {
+            $owns = (int) $course->mentor_id === (int) $user->id;
+            abort_unless($owns, 403, 'You can only view statistics for your own courses.');
+        }
+
+        try {
+            $assessmentIds = $course->lessons()
+                ->with('assessments')
+                ->get()
+                ->flatMap->assessments
+                ->pluck('id');
+
+            $attempts = AssessmentAttempt::whereIn('assessment_id', $assessmentIds)
+                ->whereNotNull('submitted_at')
+                ->get();
+
+            $total = $attempts->count();
+
+            $questionCount = Assessment::whereIn('id', $assessmentIds)
+                ->withCount('questions')
+                ->get()
+                ->sum('questions_count');
+
+            $data = [
+                'course_id' => $course->id,
+                'course_title' => $course->title,
+                'assessment_count' => $assessmentIds->count(),
+                'question_count' => $questionCount,
+                'attempt_count' => $total,
+                'average_score' => $total > 0 ? round((float) $attempts->avg('percentage'), 2) : null,
+                'pass_rate' => $total > 0 ? round($attempts->where('is_passed', true)->count() / $total * 100, 2) : null,
+            ];
+
+            return Ifa::success($data, $requestId);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return Ifa::error('The course assessment statistics are temporarily unavailable.', 500, $requestId);
         }
     }
 }

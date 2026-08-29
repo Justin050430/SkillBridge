@@ -47,6 +47,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 return;
             }
 
+            // Validation failures (422) keep their normal field-error response
+            // so API clients receive the standard error payload.
+            if ($exception instanceof \Illuminate\Validation\ValidationException) {
+                return;
+            }
+
             if ($request->expectsJson() || $request->is('api/*')) {
                 $status = $exception instanceof HttpException
                     ? $exception->getStatusCode()

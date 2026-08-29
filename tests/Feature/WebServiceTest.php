@@ -159,7 +159,7 @@ class WebServiceTest extends TestCase
     public function test_course_api_client_parses_ifa_response(): void
     {
         Http::fake([
-            '*/api/courses/published' => Http::response([
+            '*/api/courses/published*' => Http::response([
                 'status' => 'S',
                 'requestId' => 'req-123',
                 'timestamp' => now()->toIso8601String(),
@@ -180,7 +180,7 @@ class WebServiceTest extends TestCase
     public function test_result_page_shows_courses_consumed_from_course_api(): void
     {
         Http::fake([
-            '*/api/courses/published' => Http::response([
+            '*/api/courses/published*' => Http::response([
                 'status' => 'S',
                 'requestId' => 'req-456',
                 'timestamp' => now()->toIso8601String(),

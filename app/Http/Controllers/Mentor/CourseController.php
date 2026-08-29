@@ -13,6 +13,7 @@ use App\Http\Requests\Mentor\UpdateCourseRequest;
 use App\Models\Category;
 use App\Models\Course;
 use App\Models\User;
+use App\Services\CourseAnalyticsClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -120,7 +121,12 @@ class CourseController extends Controller
 
         $categories = Category::orderBy('category_name')->get();
 
-        return view('mentor.courses.edit', compact('course', 'categories'));
+        // CONSUME: the Assessment module's web service supplies this course's
+        // assessment analytics for the edit page. Degrades gracefully to null
+        // when the service is unavailable.
+        $analytics = app(CourseAnalyticsClient::class)->courseStats($course->id);
+
+        return view('mentor.courses.edit', compact('course', 'categories', 'analytics'));
     }
 
     public function update(UpdateCourseRequest $request, Course $course)

@@ -8,15 +8,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Support\Ifa;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Throwable;
 
 class CourseApiController extends Controller
 {
-    public function published(): JsonResponse
+    public function published(Request $request): JsonResponse
     {
-        $requestId = (string) Str::uuid();
+        $requestId = Ifa::requestId($request);
+
+        // IFA: requests must be traceable via timestamp and/or requestId.
+        if ($missing = Ifa::assertTraceable($request)) {
+            return $missing;
+        }
 
         try {
             $courses = Course::with(['mentor', 'category'])
@@ -36,21 +42,11 @@ class CourseApiController extends Controller
                 })
                 ->values();
 
-            return response()->json([
-                'status' => 'S',
-                'requestId' => $requestId,
-                'timestamp' => now()->toIso8601String(),
-                'data' => $courses,
-            ]);
+            return Ifa::success($courses->all(), $requestId);
         } catch (Throwable $exception) {
             report($exception);
 
-            return response()->json([
-                'status' => 'E',
-                'requestId' => $requestId,
-                'timestamp' => now()->toIso8601String(),
-                'message' => 'The course catalogue is temporarily unavailable.',
-            ], 500);
+            return Ifa::error('The course catalogue is temporarily unavailable.', 500, $requestId);
         }
     }
 }

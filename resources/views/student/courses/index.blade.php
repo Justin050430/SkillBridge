@@ -127,7 +127,15 @@
 
                 async loadCourses() {
                     try {
-                        const response = await fetch('{{ route('api.courses.published', [], false) }}', {
+                        // IFA: the course web service requires a timestamp and/or
+                        // requestId in the request for tracking.
+                        const baseUrl = '{{ route('api.courses.published', [], false) }}';
+                        const separator = baseUrl.includes('?') ? '&' : '?';
+                        const url = baseUrl + separator +
+                            'timestamp=' + encodeURIComponent(new Date().toISOString()) +
+                            '&requestId=' + ('req-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+
+                        const response = await fetch(url, {
                             headers: {
                                 Accept: 'application/json',
                             },

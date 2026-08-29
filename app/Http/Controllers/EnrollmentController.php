@@ -17,10 +17,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Enrollment;
+use App\Models\Course;
 use App\Models\User;
 use App\Patterns\Strategy\CompleteEnrollmentStrategy;
 use App\Patterns\Strategy\DropEnrollmentStrategy;
 use App\Patterns\Strategy\EnrollmentProcessor;
+use App\Services\NotificationApiClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -92,6 +94,11 @@ class EnrollmentController extends Controller
             ['enrollment' => $enrollment]
         );
 
+        // CONSUME: request the Notification module's web service to tell the
+        // student their enrollment was completed. Fails silently on the happy
+        // path of the workflow (notification is best-effort).
+        $this->notifyStudent($enrollment, 'completed');
+
         return redirect()
             ->route('enrollments.index')
             ->with('success', 'Enrollment marked as completed.');
@@ -109,9 +116,35 @@ class EnrollmentController extends Controller
             ['enrollment' => $enrollment]
         );
 
+        // CONSUME: request the Notification module's web service to tell the
+        // student their enrollment was dropped. Best-effort.
+        $this->notifyStudent($enrollment, 'dropped');
+
         return redirect()
             ->route('enrollments.index')
             ->with('success', 'Enrollment dropped.');
+    }
+
+    /**
+     * Ask the Notification module's web service to notify the enrolled
+     * student that their enrollment status changed (completed / dropped).
+     */
+    protected function notifyStudent(Enrollment $enrollment, string $verb): void
+    {
+        $student = $enrollment->student;
+
+        if (! $student) {
+            return;
+        }
+
+        app(NotificationApiClient::class)->notify(
+            $student->id,
+            'Enrollment '.$verb,
+            'Your enrollment in "'.$enrollment->course->title.'" has been marked as '.$verb.'.',
+            'Enrollment',
+            Course::class,
+            $enrollment->course_id
+        );
     }
 
     /**
