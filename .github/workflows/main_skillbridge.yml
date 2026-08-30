@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
@@ -49,20 +49,41 @@ jobs:
         run: |
           test -f public/build/manifest.json && echo "manifest.json OK" || { echo "ERROR: public/build/manifest.json not generated"; exit 1; }
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-app
-          path: .
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: php-app
+      # ------------------------------------------------------------------
+      # Why this changed:
+      # The old workflow uploaded the ENTIRE workspace (`path: .`) as a GitHub
+      # Actions artifact (~16k files: vendor/ + node_modules/ + everything else).
+      # That exhausted the repository's artifact-storage quota ("Artifact
+      # storage quota has been hit"). This workflow now builds AND deploys in a
+      # single job and NEVER uploads an artifact, so the quota no longer applies.
+      # Only the files Laravel needs at runtime are copied into ./deploy
+      # (node_modules, .git, .github, tests and docs are excluded, while
+      # vendor/ and public/build/ are kept - both are required on Azure).
+      # ------------------------------------------------------------------
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy
+          tar \
+            --exclude='./deploy' \
+            --exclude='./.git' \
+            --exclude='./.github' \
+            --exclude='./node_modules' \
+            --exclude='./Assignment' \
+            --exclude='./tests' \
+            --exclude='./.env' \
+            --exclude='./.env.backup' \
+            --exclude='./.env.production' \
+            --exclude='./storage/framework/cache/*' \
+            --exclude='./storage/framework/sessions/*' \
+            --exclude='./storage/framework/views/*' \
+            --exclude='./storage/logs/*' \
+            -cf /tmp/skillbridge-deploy.tar .
+          tar -xf /tmp/skillbridge-deploy.tar -C deploy
+          rm -f /tmp/skillbridge-deploy.tar
+          # Laravel runtime directories must exist on the deployed app.
+          mkdir -p deploy/storage/framework/cache deploy/storage/framework/sessions deploy/storage/framework/views deploy/storage/logs
+          test -f deploy/public/build/manifest.json && echo "deploy package OK (manifest.json present)"
+          echo "Deployment package file count: $(find deploy -type f | wc -l)"
 
       # Deploy using the App Service publish profile (stored in the
       # AZURE_WEBAPP_PUBLISH_PROFILE secret). This targets the app directly and
@@ -73,4 +94,4 @@ jobs:
         id: deploy-to-webapp
         with:
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: ./deploy
