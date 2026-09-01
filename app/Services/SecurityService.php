@@ -26,20 +26,32 @@ class SecurityService
     /**
      * Write an audit entry every time an access-control failure occurs
      * (e.g. a 403 response from the role middleware or a module guard).
+     *
+     * Deliberately wrapped in a guard so a logging failure (e.g. a transient
+     * disk/permission issue in the production environment) can never turn the
+     * 403 response into a 500 - the client still receives the Forbidden
+     * response either way.
      */
     public static function logAccessControlFailure(Request $request, string $reason = 'Forbidden'): void
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        Log::channel('security')->warning('Access control failure', [
-            'timestamp' => now()->toIso8601String(),
-            'user_id' => $user?->getAuthIdentifier(),
-            'user_role' => $user instanceof User ? $user->role?->role_name : 'guest',
-            'ip_address' => $request->ip(),
-            'method' => $request->method(),
-            'path' => $request->path(),
-            'reason' => $reason,
-        ]);
+            Log::channel('security')->warning('Access control failure', [
+                'timestamp' => now()->toIso8601String(),
+                'user_id' => $user?->getAuthIdentifier(),
+                'user_role' => $user instanceof User ? $user->role?->role_name : 'guest',
+                'ip_address' => $request->ip(),
+                'method' => $request->method(),
+                'path' => $request->path(),
+                'reason' => $reason,
+            ]);
+        } catch (Throwable $exception) {
+            // Never break the request because the audit log could not be
+            // written. Surface the failure to the PHP error log (independent
+            // of the Laravel log channels) without recursing through them.
+            error_log('Security audit logging failed: '.$exception->getMessage());
+        }
     }
 
     /**

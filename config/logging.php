@@ -76,7 +76,10 @@ return [
         'assessment' => [
             'driver' => 'daily',
             'path' => storage_path('logs/assessment.log'),
-            'level' => env('LOG_LEVEL', 'debug'),
+            // Audit channel: always record so a raised ambient LOG_LEVEL (e.g.
+            // LOG_LEVEL=error on the production server) can never silently
+            // suppress the assessment submission audit trail.
+            'level' => 'debug',
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
         ],
@@ -84,7 +87,10 @@ return [
         'security' => [
             'driver' => 'daily',
             'path' => storage_path('logs/security.log'),
-            'level' => env('LOG_LEVEL', 'debug'),
+            // Audit channel: always record. Access-control failures are logged
+            // at "warning", so a raised ambient LOG_LEVEL on the production
+            // server must not drop them - every 403 must leave an audit trail.
+            'level' => 'debug',
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
         ],

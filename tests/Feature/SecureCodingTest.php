@@ -73,6 +73,50 @@ class SecureCodingTest extends TestCase
         $this->assertStringContainsString('Student', $content);
     }
 
+    public function test_admin_dashboard_403_creates_security_audit_entry(): void
+    {
+        $student = $this->makeUser('Student', 'student@test.com');
+
+        // Exact production scenario: a student opens an admin-only page.
+        $this->actingAs($student)
+            ->get('/admin/dashboard')
+            ->assertForbidden();
+
+        $content = $this->securityLogContents();
+
+        $this->assertStringContainsString('Access control failure', $content);
+        $this->assertStringContainsString('admin/dashboard', $content);
+        $this->assertStringContainsString((string) $student->id, $content);
+        $this->assertStringContainsString('Student', $content);
+        $this->assertStringContainsString('GET', $content);
+    }
+
+    public function test_json_403_creates_security_audit_entry_without_duplicates(): void
+    {
+        $student = $this->makeUser('Student', 'student@test.com');
+
+        // A JSON request to an admin-only route must still log the failure,
+        // and must not log it more than once (broad handler must not skip it).
+        $this->actingAs($student)
+            ->getJson('/admin/dashboard')
+            ->assertForbidden();
+
+        $content = $this->securityLogContents();
+
+        $this->assertSame(1, substr_count($content, 'Access control failure'));
+        $this->assertStringContainsString('admin/dashboard', $content);
+        $this->assertStringContainsString((string) $student->id, $content);
+    }
+
+    public function test_audit_channels_always_record_regardless_of_ambient_log_level(): void
+    {
+        // The security/assessment audit channels must never be suppressed by a
+        // raised ambient LOG_LEVEL (e.g. LOG_LEVEL=error in production), so a
+        // 403 always leaves an audit trail.
+        $this->assertSame('debug', config('logging.channels.security.level'));
+        $this->assertSame('debug', config('logging.channels.assessment.level'));
+    }
+
     public function test_api_error_response_does_not_leak_internal_details(): void
     {
         Route::get('/api/boom', function () {
