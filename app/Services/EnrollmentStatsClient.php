@@ -13,6 +13,8 @@
 
 namespace App\Services;
 
+use App\Models\Enrollment;
+use App\Models\User;
 use App\Services\Concerns\InternalHttp;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -47,9 +49,40 @@ class EnrollmentStatsClient
 
             return $payload['data'] ?? null;
         } catch (Throwable $exception) {
-            Log::warning('Enrollment stats API consumption failed', [
+            Log::warning('Enrollment stats API consumption failed; falling back to local computation', [
                 'timestamp' => now()->toIso8601String(),
                 'endpoint' => 'api.enrollments.user.stats',
+                'user_id' => $userId,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return $this->fallbackUserStats($userId);
+        }
+    }
+
+    /**
+     * Local fallback that computes the same counts directly from the database,
+     * so the user edit page always shows real enrolment statistics even when
+     * the Enrollment web service is unreachable (e.g. local dev server).
+     */
+    protected function fallbackUserStats(int $userId): ?array
+    {
+        try {
+            if (! User::whereKey($userId)->exists()) {
+                return null;
+            }
+
+            $enrollments = Enrollment::where('student_id', $userId)->get();
+
+            return [
+                'user_id' => $userId,
+                'total' => $enrollments->count(),
+                'active' => $enrollments->where('status', 'Active')->count(),
+                'completed' => $enrollments->where('status', 'Completed')->count(),
+                'dropped' => $enrollments->where('status', 'Dropped')->count(),
+            ];
+        } catch (Throwable $exception) {
+            Log::warning('Enrollment stats local fallback failed', [
                 'user_id' => $userId,
                 'message' => $exception->getMessage(),
             ]);

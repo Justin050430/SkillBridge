@@ -14,7 +14,9 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Services\Concerns\InternalHttp;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -60,9 +62,49 @@ class NotificationApiClient
 
             return true;
         } catch (Throwable $exception) {
-            Log::warning('Notification API consumption failed', [
+            Log::warning('Notification API consumption failed; falling back to local notification', [
                 'timestamp' => now()->toIso8601String(),
                 'endpoint' => 'api.notifications.store',
+                'user_id' => $userId,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return $this->fallbackNotify($userId, $title, $message, $type, $relatedType, $relatedId);
+        }
+    }
+
+    /**
+     * Local fallback: creates the notification directly through the local
+     * NotificationService, so the student still receives the notification even
+     * when the Notification web service is unreachable (e.g. local dev server).
+     */
+    protected function fallbackNotify(
+        int $userId,
+        string $title,
+        string $message,
+        string $type,
+        ?string $relatedType = null,
+        ?int $relatedId = null
+    ): bool {
+        try {
+            $user = User::find($userId);
+
+            if (! $user) {
+                return false;
+            }
+
+            app(NotificationService::class)->notify(
+                $user,
+                $title,
+                $message,
+                $type,
+                $relatedType,
+                $relatedId
+            );
+
+            return true;
+        } catch (Throwable $exception) {
+            Log::warning('Notification local fallback failed', [
                 'user_id' => $userId,
                 'message' => $exception->getMessage(),
             ]);

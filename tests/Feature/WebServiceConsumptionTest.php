@@ -15,6 +15,7 @@
 namespace Tests\Feature;
 
 use App\Models\Assessment;
+use App\Models\AssessmentAttempt;
 use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
@@ -275,7 +276,7 @@ class WebServiceConsumptionTest extends TestCase
             ->assertSee('Pass Rate');
     }
 
-    public function test_admin_course_edit_page_degrades_when_analytics_unavailable(): void
+    public function test_admin_course_edit_page_shows_real_data_when_service_unavailable(): void
     {
         Http::fake([
             '*/api/assessments/course/*/stats*' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
@@ -285,10 +286,150 @@ class WebServiceConsumptionTest extends TestCase
         $mentor = $this->makeUser('Mentor', 'mentor@test.com');
         $course = $this->makeCourse($mentor);
 
+        // Even when the Assessment web service is unreachable, the local
+        // fallback supplies the real analytics so the page is never half-broken.
         $this->actingAs($admin)
             ->get(route('admin.courses.edit', $course))
             ->assertOk()
-            ->assertSee('Assessment analytics are temporarily unavailable.');
+            ->assertSee('Assessment Performance')
+            ->assertDontSee('temporarily unavailable');
+    }
+
+    // ------------------------------------------------------------------
+    // Local fallback when the web service is unreachable
+    // ------------------------------------------------------------------
+
+    public function test_course_analytics_client_falls_back_to_local_computation(): void
+    {
+        Http::fake([
+            '*/api/assessments/course/*/stats*' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
+        ]);
+
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $student = $this->makeUser('Student', 'student@test.com');
+        $course = $this->makeCourse($mentor);
+        $assessment = $this->makeAssessment($course);
+        $enrollment = $this->enroll($student, $course, 'Active');
+
+        AssessmentAttempt::create([
+            'enrollment_id' => $enrollment->id,
+            'assessment_id' => $assessment->id,
+            'attempt_number' => 1,
+            'score' => 1,
+            'percentage' => 80.0,
+            'is_passed' => true,
+            'started_at' => now(),
+            'submitted_at' => now(),
+        ]);
+
+        $data = app(CourseAnalyticsClient::class)->courseStats($course->id);
+
+        $this->assertNotNull($data);
+        $this->assertSame($course->id, $data['course_id']);
+        $this->assertSame(1, $data['assessment_count']);
+        $this->assertSame(1, $data['attempt_count']);
+        $this->assertSame(80.0, $data['average_score']);
+        $this->assertSame(100.0, $data['pass_rate']);
+    }
+
+    public function test_enrollment_stats_client_falls_back_to_local_computation(): void
+    {
+        Http::fake([
+            '*/api/enrollments/user/*/stats*' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
+        ]);
+
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $student = $this->makeUser('Student', 'student@test.com');
+        $course = $this->makeCourse($mentor);
+        $this->enroll($student, $course, 'Active');
+        $this->enroll($student, $course, 'Completed');
+
+        $data = app(EnrollmentStatsClient::class)->userStats($student->id);
+
+        $this->assertNotNull($data);
+        $this->assertSame($student->id, $data['user_id']);
+        $this->assertSame(2, $data['total']);
+        $this->assertSame(1, $data['active']);
+        $this->assertSame(1, $data['completed']);
+        $this->assertSame(0, $data['dropped']);
+    }
+
+    public function test_user_profile_client_falls_back_to_local_lookup(): void
+    {
+        Http::fake([
+            '*/api/users/*/profile*' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
+        ]);
+
+        $user = $this->makeUser('Mentor', 'mentor@test.com');
+
+        $data = app(UserProfileClient::class)->profile($user->id);
+
+        $this->assertNotNull($data);
+        $this->assertSame($user->id, $data['user_id']);
+        $this->assertSame('Test', $data['first_name']);
+        $this->assertSame('Mentor', $data['role']);
+        $this->assertSame('Active', $data['status']);
+    }
+
+    public function test_notification_api_client_falls_back_to_local_notification(): void
+    {
+        Http::fake([
+            '*/api/notifications' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
+        ]);
+
+        $student = $this->makeUser('Student', 'student@test.com');
+
+        $ok = app(NotificationApiClient::class)->notify(
+            $student->id,
+            'Enrollment completed',
+            'Your enrollment was completed.',
+            'Enrollment'
+        );
+
+        $this->assertTrue($ok);
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $student->id,
+            'title' => 'Enrollment completed',
+            'notification_type' => 'Enrollment',
+        ]);
+    }
+
+    public function test_course_api_client_falls_back_to_local_catalogue(): void
+    {
+        Http::fake([
+            '*/api/courses/published*' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
+        ]);
+
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $course = $this->makeCourse($mentor);
+
+        $courses = app(CourseApiClient::class)->publishedCourses();
+
+        $this->assertNotEmpty($courses);
+        $this->assertSame($course->title, $courses[0]['title']);
+        $this->assertArrayHasKey('category', $courses[0]);
+        $this->assertArrayHasKey('mentor', $courses[0]);
+    }
+
+    public function test_admin_user_edit_page_shows_real_data_when_service_unavailable(): void
+    {
+        Http::fake([
+            '*/api/enrollments/user/*/stats*' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
+        ]);
+
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $student = $this->makeUser('Student', 'student@test.com');
+        $course = $this->makeCourse($mentor);
+        $this->enroll($student, $course, 'Active');
+
+        // Even when the Enrollment web service is unreachable, the local
+        // fallback supplies the real statistics so the page is never half-broken.
+        $this->actingAs($admin)
+            ->get(route('admin.users.edit', $student))
+            ->assertOk()
+            ->assertSee('Enrollment Statistics')
+            ->assertDontSee('temporarily unavailable');
     }
 
     public function test_admin_user_edit_page_consumes_enrollment_stats(): void

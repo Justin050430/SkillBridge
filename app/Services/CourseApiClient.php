@@ -10,6 +10,7 @@
 
 namespace App\Services;
 
+use App\Models\Course;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -45,9 +46,44 @@ class CourseApiClient
 
             return $payload['data'] ?? [];
         } catch (Throwable $exception) {
-            Log::channel('assessment')->warning('Course API consumption failed', [
+            Log::channel('assessment')->warning('Course API consumption failed; falling back to the local catalogue', [
                 'timestamp' => now()->toIso8601String(),
                 'endpoint' => 'api.courses.published',
+                'message' => $exception->getMessage(),
+            ]);
+
+            return $this->fallbackPublishedCourses();
+        }
+    }
+
+    /**
+     * Local fallback for when the Course web service is unreachable (e.g. the
+     * single-threaded local dev server cannot service a loopback HTTP call).
+     * Returns the published catalogue from the database in the exact same
+     * shape as the web service, so the consuming page always has data.
+     */
+    protected function fallbackPublishedCourses(): array
+    {
+        try {
+            return Course::with(['mentor', 'category'])
+                ->where('status', 'Published')
+                ->orderBy('title')
+                ->get()
+                ->map(fn (Course $course) => [
+                    'id' => $course->id,
+                    'title' => $course->title,
+                    'slug' => $course->slug,
+                    'description' => $course->description,
+                    'thumbnail' => $course->thumbnail,
+                    'category' => $course->category?->category_name,
+                    'mentor' => $course->mentor
+                        ? $course->mentor->first_name.' '.$course->mentor->last_name
+                        : '',
+                ])
+                ->values()
+                ->all();
+        } catch (Throwable $exception) {
+            Log::warning('Course catalogue local fallback failed', [
                 'message' => $exception->getMessage(),
             ]);
 
