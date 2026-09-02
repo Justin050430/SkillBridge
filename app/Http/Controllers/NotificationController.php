@@ -33,17 +33,38 @@ class NotificationController extends Controller
 
     /**
      * Mark a single notification as read (owner only).
+     * Scoped route model binding ensures the notification belongs to the authenticated user.
      */
     public function markRead(Notification $notification)
     {
-        abort_unless($notification->user_id === Auth::id(), 403, 'You can only manage your own notifications.');
+        // Route binding already ensures ownership, but we verify for safety
+        abort_unless($notification?->user_id === Auth::id(), 404);
 
         $notification->update([
             'is_read' => true,
             'read_at' => now(),
         ]);
 
-        return redirect()->back();
+        return redirect()->back()
+            ->with('success', 'Notification marked as read.');
+    }
+
+    /**
+     * Mark a single notification as unread (owner only).
+     * Scoped route model binding ensures the notification belongs to the authenticated user.
+     */
+    public function markUnread(Notification $notification)
+    {
+        // Route binding already ensures ownership, but we verify for safety
+        abort_unless($notification?->user_id === Auth::id(), 404);
+
+        $notification->update([
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Notification marked as unread.');
     }
 
     /**

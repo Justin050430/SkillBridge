@@ -84,23 +84,41 @@
 
             </div>
 
-            @if(! $notification->is_read)
+            <div class="shrink-0">
+                @if(! $notification->is_read)
 
-                <form method="POST" action="{{ route('notifications.read', $notification) }}" class="shrink-0">
+                    <form method="POST" action="{{ route('notifications.read', $notification) }}">
 
-                    @csrf
+                        @csrf
 
-                    <button
-                        type="submit"
-                        class="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-200">
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-600 transition hover:bg-indigo-200">
 
-                        Mark read
+                            Mark read
 
-                    </button>
+                        </button>
 
-                </form>
+                    </form>
 
-            @endif
+                @else
+
+                    <form method="POST" action="{{ route('notifications.unread', $notification) }}">
+
+                        @csrf
+
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-200">
+
+                            Mark unread
+
+                        </button>
+
+                    </form>
+
+                @endif
+            </div>
 
         </div>
 
