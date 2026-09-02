@@ -283,9 +283,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])
             ->name('notifications.read');
 
-    Route::post('/notifications/{notification}/unread', [NotificationController::class, 'markUnread'])
-            ->name('notifications.unread');
-
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])
             ->name('notifications.read-all');
 });
