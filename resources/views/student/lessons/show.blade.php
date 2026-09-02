@@ -59,6 +59,9 @@
                     </span>
                     <div>
                         <h3 class="text-xl font-bold text-slate-800">Materials</h3>
+                        <p class="text-sm text-slate-500">
+    Total materials: {{ $lesson->resources->count() }}
+</p>
                         <p class="text-sm text-slate-500">Resources to help you with this lesson.</p>
                     </div>
                 </div>
