@@ -1,15 +1,45 @@
 @php
-    $lessonResources = isset($lesson) && $lesson->exists ? $lesson->resources : collect();
+    $lessonResources = isset($lesson) && $lesson->exists
+        ? $lesson->resources
+        : collect();
 
-    $lessonResourceRows = $lessonResources->map(fn ($resource) => [
-        'id' => $resource->id,
-        'type' => $resource->type,
-        'title' => $resource->title,
-        'description' => $resource->description,
-        'url' => $resource->url,
-        'existing_file' => $resource->file_name,
-        'key' => 'existing-'.$resource->id,
-    ])->values()->all();
+    $submittedResources = old('resources');
+
+    if (is_array($submittedResources)) {
+        $lessonResourceRows = collect($submittedResources)
+            ->map(function ($resource, $index) use ($lessonResources) {
+                $existingResource = !empty($resource['id'])
+                    ? $lessonResources->firstWhere('id', $resource['id'])
+                    : null;
+
+                return [
+                    'id' => $resource['id'] ?? null,
+                    'type' => $resource['type'] ?? 'File',
+                    'title' => $resource['title'] ?? '',
+                    'description' => $resource['description'] ?? '',
+                    'url' => $resource['url'] ?? '',
+                    'existing_file' => $existingResource?->file_name,
+                    'key' => !empty($resource['id'])
+                        ? 'existing-'.$resource['id']
+                        : 'old-'.$index,
+                ];
+            })
+            ->values()
+            ->all();
+    } else {
+        $lessonResourceRows = $lessonResources
+            ->map(fn ($resource) => [
+                'id' => $resource->id,
+                'type' => $resource->type,
+                'title' => $resource->title,
+                'description' => $resource->description,
+                'url' => $resource->url,
+                'existing_file' => $resource->file_name,
+                'key' => 'existing-'.$resource->id,
+            ])
+            ->values()
+            ->all();
+    }
 @endphp
 
 <form
@@ -164,6 +194,23 @@
     <div class="md:col-span-2">
         <h3 class="text-lg font-semibold text-slate-800">Materials / Resources</h3>
         <p class="mt-1 text-sm text-slate-500">Attach documents, images, videos and external links for students to access.</p>
+        @php
+    $resourceErrors = collect($errors->getMessages())
+        ->filter(fn ($messages, $key) =>
+            $key === 'resources' || str_starts_with($key, 'resources.')
+        )
+        ->flatten();
+@endphp
+
+@if ($resourceErrors->isNotEmpty())
+    <div class="mt-3 rounded-lg border border-red-300 bg-red-50 p-3">
+        <ul class="list-disc pl-5 text-sm text-red-700">
+            @foreach ($resourceErrors as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
         <hr class="mt-4">
 
         <div class="mt-4 space-y-4">
@@ -227,10 +274,13 @@
                                 <p x-show="row.existing_file" class="mt-1 text-sm text-slate-600">
                                     Current: <span class="font-medium" x-text="row.existing_file"></span>
                                 </p>
-                                <input
-                                    type="file"
-                                    :name="'resources['+index+'][file]'"
-                                    class="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-indigo-600 hover:file:bg-indigo-100">
+                      <input
+    type="file"
+    :name="'resources['+index+'][file]'"
+    x-bind:accept="row.type === 'Image'
+        ? 'image/jpeg,image/png,image/gif,image/webp'
+        : '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.md,.rtf,.mp4,.webm,.mov'"
+    class="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-indigo-600 hover:file:bg-indigo-100">
                                 <p class="mt-1 text-xs text-slate-500">
                                     PDF, Word, PowerPoint, Excel, ZIP, images or MP4 up to 25 MB.
                                 </p>
