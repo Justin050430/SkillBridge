@@ -39,12 +39,16 @@ trait ValidatesLessonResources
                 $hasFile = $this->hasFile("resources.{$index}.file");
                 $url = trim((string) ($resource['url'] ?? ''));
 
-                if (in_array($type, ['File', 'Image'], true) && ! $hasId && ! $hasFile) {
-                    $validator->errors()->add(
-                        "resources.{$index}.file",
-                        'A file is required for this resource.'
-                    );
-                }
+                if (
+    in_array($type, ['File', 'Image'], true)
+    && ! $hasId
+    && ! $hasFile
+) {
+    $validator->errors()->add(
+        "resources.{$index}.file",
+        'Please choose a file for this resource.'
+    );
+}
 
                 if ($type === 'Link' && $url === '') {
                     $validator->errors()->add(

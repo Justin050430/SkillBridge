@@ -203,13 +203,7 @@
 @endphp
 
 @if ($resourceErrors->isNotEmpty())
-    <div class="mt-3 rounded-lg border border-red-300 bg-red-50 p-3">
-        <ul class="list-disc pl-5 text-sm text-red-700">
-            @foreach ($resourceErrors as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
+<x-input-error :messages="$errors->get('resources')" class="mt-2" />
 @endif
         <hr class="mt-4">
 
@@ -232,16 +226,24 @@
                                 </select>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Title</label>
-                                <input
-                                    type="text"
-                                    :name="'resources['+index+'][title]'"
-                                    x-model="row.title"
-                                    maxlength="150"
-                                    placeholder="e.g. PHP Security Notes"
-                                    class="mt-1 w-full rounded-lg border-gray-300">
-                            </div>
+  <div>
+    <label class="block text-sm font-medium text-slate-700">Title</label>
+
+    <input
+        type="text"
+        :name="'resources['+index+'][title]'"
+        x-model="row.title"
+        maxlength="150"
+        placeholder="e.g. PHP Security Notes"
+        class="mt-1 w-full rounded-lg border-gray-300">
+
+    <p
+        x-show="errorFor(index, 'title')"
+        x-text="errorFor(index, 'title')"
+        x-cloak
+        class="mt-1 text-sm text-red-600">
+    </p>
+</div>
 
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-slate-700">Description (optional)</label>
@@ -274,9 +276,16 @@
                                 <p x-show="row.existing_file" class="mt-1 text-sm text-slate-600">
                                     Current: <span class="font-medium" x-text="row.existing_file"></span>
                                 </p>
-                      <input
+                                <input
+    type="url"
+    :name="'resources['+index+'][url]'"
+    x-model="row.url"
+    placeholder="https://..."
+    class="mt-1 w-full rounded-lg border-gray-300">
+   <input
     type="file"
     :name="'resources['+index+'][file]'"
+    x-on:change="row.has_file = $event.target.files.length > 0"
     x-bind:accept="row.type === 'Image'
         ? 'image/jpeg,image/png,image/gif,image/webp'
         : '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.md,.rtf,.mp4,.webm,.mov'"
@@ -342,23 +351,62 @@
 
 <script>
     function lessonEditor() {
+        
         return {
             rows: @json($lessonResourceRows),
+            validationErrors: @json($errors->getMessages()),
             previewOpen: false,
             previewHtml: '',
             previewLoading: false,
-
+            
+errorFor(index, field) {
+        return this.validationErrors[`resources.${index}.${field}`]?.[0] || '';
+    },
             addRow(type) {
-                this.rows.push({
-                    id: null,
-                    type: type,
-                    title: '',
-                    description: '',
-                    url: '',
-                    existing_file: null,
-                    key: 'new-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
-                });
-            },
+    const unfinishedRow = this.rows.find((row) => {
+        // A saved resource can keep its existing file.
+        if (row.id) {
+            return false;
+        }
+
+        // Every new resource requires a title.
+        if (!row.title?.trim()) {
+            return true;
+        }
+
+        // Documents and images require a selected file.
+        if (row.type === 'File' || row.type === 'Image') {
+            return !row.has_file;
+        }
+
+        // Videos and links require a URL.
+        if (row.type === 'Video' || row.type === 'Link') {
+            return !row.url?.trim();
+        }
+
+        return false;
+    });
+
+    if (unfinishedRow) {
+        window.alert(
+            'Please complete or remove the current resource before adding another resource.'
+        );
+
+        return;
+    }
+
+    this.rows.push({
+        id: null,
+        type: type,
+        title: '',
+        description: '',
+        url: '',
+        existing_file: null,
+        has_file: false,
+        key: 'new-' + Date.now() + '-' +
+            Math.random().toString(36).slice(2, 7),
+    });
+},
 
             removeRow(row) {
                 this.rows = this.rows.filter((r) => r !== row);

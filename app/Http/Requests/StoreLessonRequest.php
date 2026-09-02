@@ -40,7 +40,15 @@ class StoreLessonRequest extends FormRequest
             'status' => 'required|in:Draft,Published',
         ] + $this->resourceRules();
     }
-
+    public function messages(): array
+{
+    return [
+        'resources.*.title.required' => 'Please enter a title for this resource.',
+        'resources.*.file.mimetypes' => 'Please select a supported file type.',
+        'resources.*.file.max' => 'The selected file must not be larger than 25 MB.',
+        'resources.*.url.url' => 'Please enter a valid URL.',
+    ];
+}
     public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
     {
         $this->validateLessonResources($validator);
