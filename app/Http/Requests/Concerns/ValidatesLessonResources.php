@@ -35,8 +35,29 @@ trait ValidatesLessonResources
 
             foreach ($resources as $index => $resource) {
                 $type = $resource['type'] ?? null;
-                $hasId = ! empty($resource['id']);
-                $hasFile = $this->hasFile("resources.{$index}.file");
+$resourceId = $resource['id'] ?? null;
+$lesson = $this->route('lesson');
+
+$hasFile = $this->hasFile("resources.{$index}.file");
+
+$hasExistingFile = $resourceId
+    && $lesson
+    && LessonResource::query()
+        ->whereKey($resourceId)
+        ->where('lesson_id', $lesson->id)
+        ->whereNotNull('file_path')
+        ->exists();
+
+if (
+    in_array($type, ['File', 'Image'], true)
+    && ! $hasFile
+    && ! $hasExistingFile
+) {
+    $validator->errors()->add(
+        "resources.{$index}.file",
+        'Please choose a file for this resource.'
+    );
+}
                 $url = trim((string) ($resource['url'] ?? ''));
 
                 if (
