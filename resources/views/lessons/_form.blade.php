@@ -1,15 +1,50 @@
 @php
-    $lessonResources = isset($lesson) && $lesson->exists ? $lesson->resources : collect();
+    $lessonResources = isset($lesson) && $lesson->exists
+        ? $lesson->resources
+        : collect();
 
-    $lessonResourceRows = $lessonResources->map(fn ($resource) => [
-        'id' => $resource->id,
-        'type' => $resource->type,
-        'title' => $resource->title,
-        'description' => $resource->description,
-        'url' => $resource->url,
-        'existing_file' => $resource->file_name,
-        'key' => 'existing-'.$resource->id,
-    ])->values()->all();
+    $submittedResources = old('resources');
+
+    if (is_array($submittedResources)) {
+        $lessonResourceRows = collect($submittedResources)
+            ->map(function ($resource, $index) use ($lessonResources) {
+                $existingResource = !empty($resource['id'])
+                    ? $lessonResources->firstWhere(
+                        'id',
+                        $resource['id']
+                    )
+                    : null;
+
+                return [
+                    'id' => $resource['id'] ?? null,
+                    'type' => $resource['type'] ?? 'File',
+                    'title' => $resource['title'] ?? '',
+                    'description' =>
+                        $resource['description'] ?? '',
+                    'url' => $resource['url'] ?? '',
+                    'existing_file' =>
+                        $existingResource?->file_name,
+                    'key' => !empty($resource['id'])
+                        ? 'existing-'.$resource['id']
+                        : 'old-'.$index,
+                ];
+            })
+            ->values()
+            ->all();
+    } else {
+        $lessonResourceRows = $lessonResources
+            ->map(fn ($resource) => [
+                'id' => $resource->id,
+                'type' => $resource->type,
+                'title' => $resource->title,
+                'description' => $resource->description,
+                'url' => $resource->url,
+                'existing_file' => $resource->file_name,
+                'key' => 'existing-'.$resource->id,
+            ])
+            ->values()
+            ->all();
+    }
 @endphp
 
 <form
@@ -185,16 +220,25 @@
                                 </select>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">Title</label>
-                                <input
-                                    type="text"
-                                    :name="'resources['+index+'][title]'"
-                                    x-model="row.title"
-                                    maxlength="150"
-                                    placeholder="e.g. PHP Security Notes"
-                                    class="mt-1 w-full rounded-lg border-gray-300">
-                            </div>
+<div>
+    <label class="block text-sm font-medium text-slate-700">
+        Title
+    </label>
+
+    <input
+        type="text"
+        :name="'resources['+index+'][title]'"
+        x-model="row.title"
+        maxlength="150"
+        placeholder="e.g. PHP Security Notes"
+        class="mt-1 w-full rounded-lg border-gray-300">
+
+    <p
+        x-show="errorFor(index, 'title')"
+        x-text="errorFor(index, 'title')"
+        x-cloak
+        class="mt-1 text-sm text-red-600"></p>
+</div>
 
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-medium text-slate-700">Description (optional)</label>
@@ -294,6 +338,7 @@
     function lessonEditor() {
         return {
             rows: @json($lessonResourceRows),
+            serverErrors: @json($errors->getMessages()),
             previewOpen: false,
             previewHtml: '',
             previewLoading: false,
@@ -314,6 +359,12 @@
                 this.rows = this.rows.filter((r) => r !== row);
             },
 
+    errorFor(index, field) {
+        const messages =
+            this.serverErrors['resources.' + index + '.' + field] || [];
+
+        return messages.length > 0 ? messages[0] : '';
+    },
             formatContent(tag) {
                 const textarea = document.getElementById('content');
                 if (!textarea) return;

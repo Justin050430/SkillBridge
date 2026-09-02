@@ -45,4 +45,10 @@ class StoreLessonRequest extends FormRequest
     {
         $this->validateLessonResources($validator);
     }
+    public function messages(): array
+{
+    return [
+        'resources.*.title.required' => 'Title is required.',
+    ];
+}
 }
