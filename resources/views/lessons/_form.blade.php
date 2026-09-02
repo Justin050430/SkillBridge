@@ -163,6 +163,13 @@
     {{-- Materials / Resources --}}
     <div class="md:col-span-2">
         <h3 class="text-lg font-semibold text-slate-800">Materials / Resources</h3>
+        <p class="mt-2 font-bold text-red-600">
+    Course ID: {{ $course->id }} |
+    Lesson ID: {{ $lesson->id ?? 'New lesson' }} |
+    Saved materials: {{ isset($lesson) && $lesson->exists
+        ? $lesson->resources->count()
+        : 0 }}
+</p>
         <p class="mt-1 text-sm text-slate-500">Attach documents, images, videos and external links for students to access.</p>
         <hr class="mt-4">
 

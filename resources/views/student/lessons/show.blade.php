@@ -59,6 +59,11 @@
                     </span>
                     <div>
                         <h3 class="text-xl font-bold text-slate-800">Materials</h3>
+                        <p class="mt-2 font-bold text-red-600">
+    Course ID: {{ $course->id }} |
+    Lesson ID: {{ $lesson->id }} |
+    Saved materials: {{ $lesson->resources->count() }}
+</p>
                         <p class="text-sm text-slate-500">
     Total materials: {{ $lesson->resources->count() }}
 </p>
