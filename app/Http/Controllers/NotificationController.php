@@ -63,4 +63,22 @@ class NotificationController extends Controller
         return redirect()->back()
             ->with('success', 'All notifications marked as read.');
     }
+
+    /**
+     * Permanently delete a single notification (owner only).
+     *
+     * Notifications form a personal inbox, not an audit trail, so a hard
+     * delete is intentional - no other table references a notification row.
+     */
+    public function destroy(Notification $notification)
+    {
+        // (int) casts guard against string FKs returned by MySQL/sqlsrv -
+        // strict === would otherwise falsely 403 for the record owner.
+        abort_unless((int) $notification->user_id === (int) Auth::id(), 403, 'You can only manage your own notifications.');
+
+        $notification->delete();
+
+        return redirect()->back()
+            ->with('success', 'Notification deleted.');
+    }
 }

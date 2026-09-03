@@ -84,23 +84,85 @@
 
             </div>
 
-            @if(! $notification->is_read)
+            <div class="flex shrink-0 items-center gap-2">
 
-                <form method="POST" action="{{ route('notifications.read', $notification) }}" class="shrink-0">
+                @if(! $notification->is_read)
+
+                    <form method="POST" action="{{ route('notifications.read', $notification) }}">
+
+                        @csrf
+
+                        <button
+                            type="submit"
+                            class="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-200">
+
+                            Mark read
+
+                        </button>
+
+                    </form>
+
+                @endif
+
+                <button
+                    type="button"
+                    x-data=""
+                    x-on:click.prevent="$dispatch('open-modal', 'confirm-notification-delete-{{ $notification->id }}')"
+                    class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-slate-400 transition hover:bg-red-50 hover:text-red-600">
+
+                    <x-heroicon-o-trash class="h-4 w-4" />
+
+                    Delete
+
+                </button>
+
+            </div>
+
+            <x-modal name="confirm-notification-delete-{{ $notification->id }}" :show="false" focusable>
+
+                <form method="POST" action="{{ route('notifications.destroy', $notification) }}" class="p-6">
 
                     @csrf
+                    @method('DELETE')
 
-                    <button
-                        type="submit"
-                        class="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-200">
+                    <div class="flex items-start gap-4">
 
-                        Mark read
+                        <div class="rounded-full bg-red-100 p-2">
 
-                    </button>
+                            <x-heroicon-o-trash class="h-6 w-6 text-red-600" />
+
+                        </div>
+
+                        <div>
+
+                            <h2 class="text-lg font-semibold text-slate-900">
+                                Delete this notification?
+                            </h2>
+
+                            <p class="mt-1 text-sm text-slate-600">
+                                "{{ $notification->title }}" will be permanently removed from your inbox.
+                                This action cannot be undone.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="mt-6 flex justify-end gap-3">
+
+                        <x-secondary-button type="button" x-on:click="$dispatch('close')">
+                            Cancel
+                        </x-secondary-button>
+
+                        <x-danger-button type="submit">
+                            Delete
+                        </x-danger-button>
+
+                    </div>
 
                 </form>
 
-            @endif
+            </x-modal>
 
         </div>
 

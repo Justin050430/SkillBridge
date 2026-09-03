@@ -285,6 +285,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])
             ->name('notifications.read-all');
+
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
+            ->name('notifications.destroy');
 });
 
 require __DIR__.'/auth.php';
