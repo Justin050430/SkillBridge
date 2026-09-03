@@ -36,7 +36,9 @@ class NotificationController extends Controller
      */
     public function markRead(Notification $notification)
     {
-        abort_unless($notification->user_id === Auth::id(), 403, 'You can only manage your own notifications.');
+        // (int) casts guard against string FKs returned by MySQL/sqlsrv -
+        // strict === would otherwise falsely 403 for the record owner.
+        abort_unless((int) $notification->user_id === (int) Auth::id(), 403, 'You can only manage your own notifications.');
 
         $notification->update([
             'is_read' => true,
