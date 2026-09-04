@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author OOI JIAN XIN
+ * @author Puah Zhan Zheng
  */
 
 namespace App\Http\Controllers\Auth;
