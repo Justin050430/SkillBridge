@@ -21,7 +21,7 @@ class LoginRegistrationUiTest extends TestCase
     {
         parent::setUp();
 
-        // Registration uses fixed role ids via UserAccountFactory.
+        // Registration resolves the Student role via UserAccountFactory.
         $this->seed(RoleSeeder::class);
     }
 

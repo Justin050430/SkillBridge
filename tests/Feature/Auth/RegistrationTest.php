@@ -14,8 +14,8 @@ class RegistrationTest extends TestCase
     {
         parent::setUp();
 
-        // The app expects the seeded roles to exist (UserAccountFactory uses
-        // fixed role ids, e.g. 3 = Student).
+        // The app expects the seeded roles to exist so UserAccountFactory can
+        // resolve the Student role by name.
         $this->seed(RoleSeeder::class);
     }
 

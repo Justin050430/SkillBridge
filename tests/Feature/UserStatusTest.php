@@ -14,8 +14,10 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Mockery;
 use Tests\TestCase;
 
 class UserStatusTest extends TestCase
@@ -172,6 +174,92 @@ class UserStatusTest extends TestCase
             ->assertRedirect('/admin/users');
 
         $this->assertSame('Inactive', $student->fresh()->status);
+    }
+
+    public function test_admin_cannot_deactivate_own_account_via_update(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+
+        $this->actingAs($admin)
+            ->from('/admin/users/'.$admin->id.'/edit')
+            ->put('/admin/users/'.$admin->id, [
+                'first_name' => 'Test',
+                'last_name' => 'Admin',
+                'email' => 'admin@test.com',
+                'role_id' => $admin->role_id,
+                'status' => 'Inactive',
+            ])
+            ->assertRedirect('/admin/users/'.$admin->id.'/edit')
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame('Active', $admin->fresh()->status);
+    }
+
+    public function test_last_active_admin_cannot_be_demoted_via_update(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $studentRole = Role::firstOrCreate(['role_name' => 'Student']);
+
+        $this->actingAs($admin)
+            ->from('/admin/users/'.$admin->id.'/edit')
+            ->put('/admin/users/'.$admin->id, [
+                'first_name' => 'Test',
+                'last_name' => 'Admin',
+                'email' => 'admin@test.com',
+                'role_id' => $studentRole->id,
+                'status' => 'Active',
+            ])
+            ->assertRedirect('/admin/users/'.$admin->id.'/edit')
+            ->assertSessionHasErrors('status');
+
+        $this->assertTrue($admin->fresh()->isAdmin());
+        $this->assertSame('Active', $admin->fresh()->status);
+    }
+
+    public function test_deleted_user_cannot_be_reactivated_via_update(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $deleted = $this->makeUser('Student', 'deleted@test.com', 'Deleted');
+
+        $this->actingAs($admin)
+            ->put('/admin/users/'.$deleted->id, [
+                'first_name' => 'Test',
+                'last_name' => 'Student',
+                'email' => 'deleted@test.com',
+                'role_id' => $deleted->role_id,
+                'status' => 'Active',
+            ])
+            ->assertRedirect('/admin/users?status=Deleted');
+
+        $this->assertSame('Deleted', $deleted->fresh()->status);
+    }
+
+    public function test_admin_user_creation_delegates_to_user_service(): void
+    {
+        $admin = $this->makeUser('Admin', 'admin@test.com');
+        $studentRole = Role::firstOrCreate(['role_name' => 'Student']);
+
+        $service = Mockery::mock(UserService::class);
+        $service->shouldReceive('createUser')
+            ->once()
+            ->with(Mockery::on(fn (array $data) =>
+                $data['email'] === 'created@test.com'
+                && (int) $data['role_id'] === (int) $studentRole->id
+            ))
+            ->andReturn(new User());
+
+        $this->app->instance(UserService::class, $service);
+
+        $this->actingAs($admin)
+            ->post('/admin/users', [
+                'first_name' => 'Created',
+                'last_name' => 'Student',
+                'email' => 'created@test.com',
+                'role_id' => $studentRole->id,
+                'password' => 'Password@123',
+                'password_confirmation' => 'Password@123',
+            ])
+            ->assertRedirect('/admin/users');
     }
 
     // ---- Dedicated deactivate action (Active -> Inactive) ----

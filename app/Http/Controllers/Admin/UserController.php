@@ -15,11 +15,16 @@ use App\Patterns\Command\Commands\NotifyAdminsOnSecurityEvent;
 use App\Patterns\Command\NotificationInvoker;
 use App\Services\EnrollmentStatsClient;
 use App\Services\NotificationService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function __construct(protected UserService $userService)
+    {
+    }
+
     public function index(Request $request) {
         // Cap user-controlled search/filter input (values are used via
         // parameterised queries, but we still bound length/values).
@@ -79,14 +84,7 @@ class UserController extends Controller
     public function store(StoreUserRequest $request) {
         $validated = $request->validated();
 
-        User::create([
-            'role_id' => $validated['role_id'],
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'status' => 'Active',
-        ]);
+        $this->userService->createUser($validated);
 
         return redirect()
                         ->route('admin.users')
@@ -94,6 +92,12 @@ class UserController extends Controller
     }
     
     public function edit(User $user) {
+        if ($user->isDeleted()) {
+            return redirect()
+                            ->route('admin.users', ['status' => 'Deleted'])
+                            ->with('error', 'Deleted accounts cannot be edited or reactivated.');
+        }
+
         $roles = Role::orderBy('role_name')->get();
 
         // CONSUME: the Enrollment module's web service supplies this user's
@@ -106,6 +110,43 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user) {
         $validated = $request->validated();
+
+        if ($user->isDeleted()) {
+            return redirect()
+                            ->route('admin.users', ['status' => 'Deleted'])
+                            ->with('error', 'Deleted accounts cannot be edited or reactivated.');
+        }
+
+        $requestedRole = Role::findOrFail($validated['role_id']);
+        $requestedStatus = $validated['status'] ?? $user->status;
+
+        // The signed-in Administrator must remain an Active Administrator.
+        // This mirrors the safeguards used by the dedicated deactivate/delete
+        // actions and prevents bypassing them through the edit form.
+        if (
+                $user->id == auth()->id()
+                && ($requestedRole->role_name !== 'Admin' || $requestedStatus !== 'Active')
+        ) {
+            return back()
+                            ->withInput()
+                            ->withErrors([
+                                'status' => 'You cannot deactivate or remove the Administrator role from your own account.',
+                            ]);
+        }
+
+        // Never allow the edit form to remove the system's last Active Admin,
+        // either by changing the role or by setting the account to Inactive.
+        $removesActiveAdmin = $user->isAdmin()
+                && $user->isActive()
+                && ($requestedRole->role_name !== 'Admin' || $requestedStatus !== 'Active');
+
+        if ($removesActiveAdmin && User::admins()->active()->count() === 1) {
+            return back()
+                            ->withInput()
+                            ->withErrors([
+                                'status' => 'The last Active Administrator cannot be deactivated or assigned another role.',
+                            ]);
+        }
 
         $user->first_name = $validated['first_name'];
         $user->last_name = $validated['last_name'];
