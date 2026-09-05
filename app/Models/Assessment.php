@@ -33,6 +33,12 @@ class Assessment extends Model
         return $this->belongsTo(Lesson::class);
     }
 
+    protected function casts(): array
+    {
+        // Durations are stored in seconds (null means untimed).
+        return ['time_limit' => 'integer', 'max_attempts' => 'integer'];
+    }
+
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class);

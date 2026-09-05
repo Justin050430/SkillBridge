@@ -192,7 +192,7 @@ class AssessmentAttemptLimitTest extends TestCase
 
         // Opening the take page must be blocked...
         $response = $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertRedirect('/student/assessments')
             ->assertSessionHas('error');
 
@@ -221,7 +221,7 @@ class AssessmentAttemptLimitTest extends TestCase
 
         // A hand-crafted request to start attempt 4 is rejected.
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertRedirect('/student/assessments');
 
         $this->assertSame(
@@ -248,12 +248,12 @@ class AssessmentAttemptLimitTest extends TestCase
 
         // Student A is blocked.
         $this->actingAs($studentA)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertRedirect('/student/assessments');
 
         // Student B, who has no attempts, may still start.
         $this->actingAs($studentB)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertOk();
 
         $this->assertSame(1, AssessmentAttempt::where('enrollment_id', $enrollmentB->id)->count());
@@ -293,7 +293,7 @@ class AssessmentAttemptLimitTest extends TestCase
         // The old cycle's attempts do not carry over: the student may start a
         // fresh attempt under the new enrollment (attempt_number 1).
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertOk();
 
         $fresh = AssessmentAttempt::where('enrollment_id', $second->id)
@@ -331,7 +331,7 @@ class AssessmentAttemptLimitTest extends TestCase
 
         // Opening the take page resumes the existing attempt - no 4th row.
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertOk();
 
         $this->assertSame(3, AssessmentAttempt::where('enrollment_id', $enrollment->id)->count());

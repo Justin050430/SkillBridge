@@ -62,7 +62,45 @@ php artisan serve
 
 ```bash
 php artisan test
+npm test
 ```
+
+### Assessment countdown rollout
+
+Assessment durations are stored as total **seconds** in `assessments.time_limit`;
+`null` means no time limit. The mentor form accepts hours, minutes, and seconds,
+from 1 second to 10 hours. A new attempt snapshots its deadline in `expires_at`.
+Changing an assessment duration affects future attempts only.
+
+The server rejects submissions at or after the deadline. Timeouts retain a null
+`submitted_at`, record `expired_at`, and consume an attempt without grading or
+completing a lesson. Expiration is effective even when the browser never sends
+its timeout request; later access reconciles the stored timestamp. Graded-score
+analytics continue to include actual submissions only. Refreshing resumes the
+same attempt, but unsubmitted answers are not autosaved.
+
+The migration `2026_09_05_000000_add_assessment_deadlines.php` converts existing
+minute values to seconds and backfills deadlines for unfinished timed attempts.
+Existing overdue attempts become expired and consume their existing slot.
+Backfill uses the currently stored duration because historical duration edits
+were not recorded.
+
+Deploy this change in a maintenance window: back up the database, pause requests
+and drain in-flight requests, deploy the matching PHP and built frontend
+assets, run `php artisan migrate --force`, clear compiled views, then resume
+traffic. The Azure deployment workflow currently uploads code/assets only; it
+does not execute migrations. Do not serve the new code with the old schema or
+the old code after unit conversion. Rollback refuses second-precision durations
+or persisted timeouts that the old schema cannot represent; restore the matching
+pre-change database backup and application version instead.
+
+Start/Retake now uses `POST /student/assessments/{slug}/start` followed by a GET
+to the specific attempt. Submission and timeout requests require `attempt_id`,
+which is checked against the authenticated student's active enrollment. GET
+requests cannot allocate attempts. Lifecycle writes use transactions and lock
+the enrollment before the attempt, so concurrent requests use the same lock
+order. Run the timer tests against a disposable MySQL database in staging when
+validating production-specific locking; the default PHPUnit suite uses SQLite.
 
 ## Azure Deployment
 

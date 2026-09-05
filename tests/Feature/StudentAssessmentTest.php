@@ -165,7 +165,7 @@ class StudentAssessmentTest extends TestCase
         $assessment = $this->makeAssessment($this->makeLesson($course));
 
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertForbidden();
     }
 
@@ -195,11 +195,11 @@ class StudentAssessmentTest extends TestCase
 
         // Start the attempt (as the student would by opening the assessment).
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertOk();
 
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->slug.'/submit', [
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1,
                 'answers' => [
                     $q1->id => 'B',
                     $q2->id => 'False',
@@ -247,12 +247,12 @@ class StudentAssessmentTest extends TestCase
         $this->makeQuestion($assessment);
 
         // First attempt.
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
-        $this->actingAs($student)->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []]);
+        $this->actingAs($student)->startAssessment($assessment);
+        $this->actingAs($student)->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1, 'answers' => []]);
 
         // Second take should be blocked (redirect back to the list).
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertRedirect('/student/assessments');
     }
 

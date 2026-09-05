@@ -271,9 +271,9 @@ class NotificationDeleteTest extends TestCase
         // Submission fires the Observer, which dispatches notification
         // commands for both the student result and the mentor.
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take');
+            ->startAssessment($assessment);
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []]);
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1, 'answers' => []]);
 
         $studentNotification = Notification::where('user_id', $student->id)->first();
         $mentorNotification = Notification::where('user_id', $mentor->id)->first();

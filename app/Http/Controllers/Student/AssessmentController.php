@@ -17,8 +17,11 @@ use App\Patterns\Observer\AssessmentSubmission;
 use App\Patterns\Observer\Observers\NotificationDispatchObserver;
 use App\Patterns\Observer\Observers\ProgressUpdater;
 use App\Patterns\Observer\Observers\SubmissionLogger;
+use App\Services\AssessmentAttemptService;
 use App\Services\CourseApiClient;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AssessmentController extends Controller
 {
@@ -118,16 +121,12 @@ class AssessmentController extends Controller
         $summaries = $assessments->map(function (Assessment $assessment) use ($attempts) {
             $studentAttempts = $attempts->get($assessment->id, collect());
 
-            // Only SUBMITTED attempts count towards the attempt limit. A
-            // started-but-not-submitted attempt is shown separately as an
-            // in-progress attempt that the student can resume (it is not a
-            // new attempt and does not consume an extra slot).
             $submitted = $studentAttempts->filter(fn ($attempt) => $attempt->submitted_at !== null);
 
             return (object) [
                 'assessment' => $assessment,
-                'attemptCount' => $submitted->count(),
-                'hasInProgress' => $studentAttempts->contains(fn ($attempt) => $attempt->submitted_at === null),
+                'attemptCount' => $studentAttempts->filter(fn ($attempt) => ! $attempt->isActive())->count(),
+                'hasInProgress' => $studentAttempts->contains(fn ($attempt) => $attempt->isActive()),
                 'bestScore' => $submitted->max('percentage'),
                 'passed' => $submitted->contains('is_passed', true),
                 'canTake' => $this->canTake($assessment, $studentAttempts),
@@ -137,168 +136,169 @@ class AssessmentController extends Controller
         return view('student.assessments.index', compact('summaries'));
     }
 
-    public function take(Assessment $assessment)
+    public function start(Assessment $assessment, AssessmentAttemptService $attempts)
     {
         $this->ensureEnrolled($assessment);
-
         $this->ensurePublishedForStudents($assessment);
+        $attempt = $attempts->start($assessment, $this->enrollmentId($assessment));
 
-        $enrollmentId = $this->enrollmentId($assessment);
-
-        // Resume an in-progress attempt if one exists.
-        $attempt = AssessmentAttempt::where('enrollment_id', $enrollmentId)
-            ->where('assessment_id', $assessment->id)
-            ->whereNull('submitted_at')
-            ->latest()
-            ->first();
-
-        if (!$attempt) {
-            $completedCount = AssessmentAttempt::where('enrollment_id', $enrollmentId)
-                ->where('assessment_id', $assessment->id)
-                ->whereNotNull('submitted_at')
-                ->count();
-
-            if ($assessment->max_attempts !== null && $completedCount >= $assessment->max_attempts) {
-                return redirect()
-                    ->route('student.assessments.index')
-                    ->with('error', 'You have used all your allowed attempts for this assessment.');
-            }
-
-            $attempt = AssessmentAttempt::create([
-                'enrollment_id' => $enrollmentId,
-                'assessment_id' => $assessment->id,
-                'attempt_number' => $completedCount + 1,
-                'score' => 0,
-                'percentage' => 0,
-                'is_passed' => false,
-                'started_at' => now(),
-            ]);
+        if (! $attempt) {
+            return redirect()->route('student.assessments.index')
+                ->with('error', 'You have used all your allowed attempts for this assessment.');
         }
 
-        $questions = $assessment->questions()
-            ->orderBy('order_number')
-            ->get();
-
-        return view('student.assessments.take', compact('assessment', 'questions', 'attempt'));
+        return redirect()->route('student.assessments.take', ['assessment' => $assessment, 'attempt' => $attempt->id]);
     }
 
-    public function submit(SubmitAssessmentRequest $request, Assessment $assessment)
+    public function take(Request $request, Assessment $assessment, AssessmentAttemptService $attempts)
     {
         $this->ensureEnrolled($assessment);
         $this->ensurePublishedForStudents($assessment);
-
+        $request->validate(['attempt' => 'nullable|integer|min:1']);
         $enrollmentId = $this->enrollmentId($assessment);
+        $attemptId = $request->integer('attempt');
 
-        $attempt = AssessmentAttempt::where('enrollment_id', $enrollmentId)
-            ->where('assessment_id', $assessment->id)
-            ->whereNull('submitted_at')
-            ->latest()
-            ->first();
-
-        abort_unless($attempt, 403, 'No active attempt was found for this assessment.');
-
-        $questions = $assessment->questions()
-            ->orderBy('order_number')
-            ->get();
-
-        $submitted = $request->validated('answers') ?? [];
-        $score = 0;
-        $totalMarks = 0;
-
-        foreach ($questions as $question) {
-            $totalMarks += $question->marks;
-
-            $raw = $submitted[$question->id] ?? null;
-            $answer = is_string($raw) ? trim($raw) : '';
-
-            $isCorrect = $this->isAnswerCorrect($question, $answer);
-
-            if ($isCorrect) {
-                $score += $question->marks;
+        // Legacy links may resume an attempt, but GET never allocates a retry.
+        if (! $attemptId) {
+            $attemptId = AssessmentAttempt::where('enrollment_id', $enrollmentId)
+                ->where('assessment_id', $assessment->id)->whereNull('submitted_at')
+                ->whereNull('expired_at')->latest('attempt_number')->value('id');
+            if (! $attemptId) {
+                return redirect()->route('student.assessments.index')
+                    ->with('error', 'Choose Start or Retake Assessment to begin an attempt.');
             }
 
-            StudentAnswer::create([
-                'attempt_id' => $attempt->id,
-                'question_id' => $question->id,
-                'submitted_answer' => $answer,
-                'is_correct' => $isCorrect,
-                'marks_awarded' => $isCorrect ? $question->marks : 0,
-            ]);
+            return redirect()->route('student.assessments.take', ['assessment' => $assessment, 'attempt' => $attemptId]);
         }
 
-        $percentage = $totalMarks > 0 ? round(($score / $totalMarks) * 100, 2) : 0.0;
+        return $attempts->withAttempt($assessment, $enrollmentId, $attemptId, function ($attempt) use ($assessment) {
+            if (! $attempt->isActive()) {
+                return $this->endedResponse($assessment, $attempt);
+            }
+            $questions = $assessment->questions()->orderBy('order_number')->get();
 
-        $attempt->update([
-            'score' => $score,
-            'percentage' => $percentage,
-            'is_passed' => $percentage >= $assessment->passing_score,
-            'submitted_at' => now(),
-        ]);
-
-        // Publish the graded submission to registered observers
-        // (GoF Observer pattern). Observers react to the state change, e.g.
-        // updating lesson progress, writing an audit log entry, and
-        // dispatching notification commands (Command pattern).
-        $submission = new AssessmentSubmission($attempt, $assessment);
-        $submission->attach(new ProgressUpdater());
-        $submission->attach(new SubmissionLogger());
-        $submission->attach(new NotificationDispatchObserver());
-        $submission->notify();
-
-        return redirect()
-            ->route('student.assessments.result', $assessment);
+            return response()->view('student.assessments.take', compact('assessment', 'questions', 'attempt'))
+                ->header('Cache-Control', 'no-store, private');
+        });
     }
 
-    public function result(Assessment $assessment)
+    public function expire(Request $request, Assessment $assessment, AssessmentAttemptService $attempts)
+    {
+        $this->ensureEnrolled($assessment);
+        $this->ensurePublishedForStudents($assessment);
+        $validated = $request->validate(['attempt_id' => 'required|integer|min:1']);
+
+        return $attempts->withAttempt($assessment, $this->enrollmentId($assessment), (int) $validated['attempt_id'],
+            function ($attempt) use ($assessment) {
+                return response()->json([
+                    'state' => $attempt->submitted_at ? 'submitted' : ($attempt->hasExpired() ? 'expired' : 'active'),
+                    'server_now' => now()->getTimestampMs(),
+                    'expires_at' => $attempt->expires_at?->getTimestampMs(),
+                    'redirect_url' => route('student.assessments.result', ['assessment' => $assessment, 'attempt' => $attempt->id]),
+                ])->header('Cache-Control', 'no-store, private');
+            });
+    }
+
+    public function submit(SubmitAssessmentRequest $request, Assessment $assessment, AssessmentAttemptService $attempts)
     {
         $this->ensureEnrolled($assessment);
         $this->ensurePublishedForStudents($assessment);
 
-        // Scope to the student's ACTIVE enrollment(s) only, so a submitted
-        // attempt belonging to a previously DROPPED enrollment can never be
-        // shown as the result of a fresh (re)enrollment.
-        $attempt = AssessmentAttempt::where('assessment_id', $assessment->id)
-            ->whereIn('enrollment_id', $this->activeEnrollmentIds())
-            ->whereNotNull('submitted_at')
-            ->latest('submitted_at')
-            ->first();
+        return $attempts->withAttempt($assessment, $this->enrollmentId($assessment), $request->integer('attempt_id'),
+            function ($attempt) use ($request, $assessment) {
+                if (! $attempt->isActive()) {
+                    return $this->endedResponse($assessment, $attempt);
+                }
 
-        abort_unless($attempt, 404, 'No submitted result was found for this assessment.');
+                // Expiration is resolved before answer validation can redirect back.
+                $submitted = $request->validatedAnswers();
+                $acceptedAt = now();
+                if ($attempt->expires_at !== null && $acceptedAt->greaterThanOrEqualTo($attempt->expires_at)) {
+                    app(AssessmentAttemptService::class)->expireIfDue($attempt);
 
-        $answers = $attempt->studentAnswers()
-            ->with('question')
-            ->get()
-            ->keyBy('question_id');
+                    return $this->endedResponse($assessment, $attempt);
+                }
 
-        // Consume the Course module's web service to surface other published
-        // courses on the result page (bidirectional web-service integration).
-        $relatedCourses = app(CourseApiClient::class)->publishedCourses();
+                $questions = $assessment->questions()->orderBy('order_number')->get();
+                $score = 0;
+                $totalMarks = 0;
+                foreach ($questions as $question) {
+                    $totalMarks += $question->marks;
+                    $raw = $submitted[$question->id] ?? null;
+                    $answer = is_string($raw) ? trim($raw) : '';
+                    $isCorrect = $this->isAnswerCorrect($question, $answer);
+                    if ($isCorrect) {
+                        $score += $question->marks;
+                    }
+                    StudentAnswer::create([
+                        'attempt_id' => $attempt->id,
+                        'question_id' => $question->id,
+                        'submitted_answer' => $answer,
+                        'is_correct' => $isCorrect,
+                        'marks_awarded' => $isCorrect ? $question->marks : 0,
+                    ]);
+                }
 
-        return view('student.assessments.result', compact('assessment', 'attempt', 'answers', 'relatedCourses'));
+                $percentage = $totalMarks > 0 ? round(($score / $totalMarks) * 100, 2) : 0.0;
+                $attempt->update([
+                    'score' => $score,
+                    'percentage' => $percentage,
+                    'is_passed' => $percentage >= $assessment->passing_score,
+                    'submitted_at' => $acceptedAt,
+                ]);
+
+                // Run once, after the successful state transition is committed.
+                DB::afterCommit(function () use ($attempt, $assessment) {
+                    $submission = new AssessmentSubmission($attempt, $assessment);
+                    $submission->attach(new ProgressUpdater);
+                    $submission->attach(new SubmissionLogger);
+                    $submission->attach(new NotificationDispatchObserver);
+                    $submission->notify();
+                });
+
+                return redirect()->route('student.assessments.result', $assessment);
+            });
     }
 
-    /**
-     * Whether the student is allowed to open another attempt.
-     *
-     * The button state must match the backend enforcement in take(): a new
-     * attempt may only be created when the number of SUBMITTED attempts is
-     * below max_attempts, and an in-progress attempt may always be resumed.
-     */
+    private function endedResponse(Assessment $assessment, AssessmentAttempt $attempt)
+    {
+        return redirect()->route('student.assessments.result', ['assessment' => $assessment, 'attempt' => $attempt->id]);
+    }
+
+    public function result(Request $request, Assessment $assessment, AssessmentAttemptService $attempts)
+    {
+        $this->ensureEnrolled($assessment);
+        $this->ensurePublishedForStudents($assessment);
+        $request->validate(['attempt' => 'nullable|integer|min:1']);
+
+        $query = AssessmentAttempt::where('assessment_id', $assessment->id)
+            ->whereIn('enrollment_id', $this->activeEnrollmentIds())->ended();
+        if ($request->filled('attempt')) {
+            $query->whereKey($request->integer('attempt'));
+        }
+        $attempt = $query->latest('attempt_number')->first();
+        abort_unless($attempt, 404, 'No ended attempt was found for this assessment.');
+        $attempts->expireIfDue($attempt);
+
+        $answers = $attempt->studentAnswers()->with('question')->get()->keyBy('question_id');
+        $studentAttempts = AssessmentAttempt::where('assessment_id', $assessment->id)
+            ->where('enrollment_id', $attempt->enrollment_id)->get();
+        $canTake = $this->canTake($assessment, $studentAttempts);
+        $hasInProgress = $studentAttempts->contains(fn ($item) => $item->isActive());
+        $remainingAttempts = $assessment->max_attempts === null
+            ? null : max(0, $assessment->max_attempts - $studentAttempts->count());
+        $relatedCourses = $attempt->hasExpired() ? [] : app(CourseApiClient::class)->publishedCourses();
+
+        return view('student.assessments.result', compact(
+            'assessment', 'attempt', 'answers', 'relatedCourses', 'canTake', 'hasInProgress', 'remainingAttempts'
+        ));
+    }
+
     protected function canTake(Assessment $assessment, $studentAttempts): bool
     {
-        $hasInProgress = $studentAttempts->contains(function ($attempt) {
-            return $attempt->submitted_at === null;
-        });
-
-        if ($hasInProgress || $assessment->max_attempts === null) {
-            return true;
-        }
-
-        $submittedCount = $studentAttempts->filter(function ($attempt) {
-            return $attempt->submitted_at !== null;
-        })->count();
-
-        return $submittedCount < $assessment->max_attempts;
+        return $studentAttempts->contains(fn ($attempt) => $attempt->isActive())
+            || $assessment->max_attempts === null
+            || $studentAttempts->count() < $assessment->max_attempts;
     }
 
     /**
