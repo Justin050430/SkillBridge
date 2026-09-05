@@ -94,12 +94,14 @@
                                 @endif
 
                                 @if($assessment)
-                                    <a
-                                        href="{{ route('student.assessments.take', $assessment) }}"
-                                        class="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-700">
-                                        <x-heroicon-o-clipboard-document-check class="h-3.5 w-3.5"/>
-                                        {{ $assessment->title }} · {{ $assessment->questions_count }} question{{ $assessment->questions_count === 1 ? '' : 's' }}
-                                    </a>
+                                    <form method="POST" action="{{ route('student.assessments.start', $assessment) }}">
+                                        @csrf
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-700">
+                                            <x-heroicon-o-clipboard-document-check class="h-3.5 w-3.5"/>
+                                            {{ $assessment->title }} · {{ $assessment->questions_count }} question{{ $assessment->questions_count === 1 ? '' : 's' }}
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </div>

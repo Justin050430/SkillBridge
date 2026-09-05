@@ -248,6 +248,12 @@ Route::middleware(['auth', 'role:Student'])->group(function () {
     Route::get('/student/assessments/{assessment:slug}/take', [StudentAssessmentController::class, 'take'])
             ->name('student.assessments.take');
 
+    Route::post('/student/assessments/{assessment:slug}/start', [StudentAssessmentController::class, 'start'])
+            ->name('student.assessments.start');
+
+    Route::post('/student/assessments/{assessment:slug}/expire', [StudentAssessmentController::class, 'expire'])
+            ->name('student.assessments.expire');
+
     Route::post('/student/assessments/{assessment:slug}/submit', [StudentAssessmentController::class, 'submit'])
             ->name('student.assessments.submit');
 

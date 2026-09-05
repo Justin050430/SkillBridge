@@ -117,12 +117,12 @@ class StudentDropLimitAndResetTest extends TestCase
         // Opening the assessment creates an in-progress attempt under the
         // student's ACTIVE enrollment.
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertOk();
 
         // Submit the correct answer -> score 1/1 (100%), passed.
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->slug.'/submit', [
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1,
                 'answers' => [$assessment->questions()->first()->id => 'A'],
             ])
             ->assertRedirect();
@@ -226,7 +226,7 @@ class StudentDropLimitAndResetTest extends TestCase
         // is allowed (old cycle's max_attempts/attempts do not carry over)
         // and the fresh attempt belongs to the new enrollment.
         $this->actingAs($student)
-            ->get('/student/assessments/'.$assessment->slug.'/take')
+            ->startAssessment($assessment)
             ->assertOk();
 
         $freshAttempt = AssessmentAttempt::where('enrollment_id', $newEnrollment->id)
