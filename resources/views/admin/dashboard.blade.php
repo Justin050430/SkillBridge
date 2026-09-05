@@ -56,19 +56,9 @@
 
 <div class="grid lg:grid-cols-3 gap-6 mt-8">
 
-    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    @include('admin.partials.publishing-checklist')
 
-        <h2 class="text-xl font-semibold mb-4">
-            Recent Activities
-        </h2>
-
-        <div class="text-slate-500">
-            No recent activities.
-        </div>
-
-    </div>
-
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 self-start">
 
         <h2 class="text-xl font-semibold mb-4">
             Quick Actions
