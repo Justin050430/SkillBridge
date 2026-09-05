@@ -217,14 +217,12 @@
                                     · Pass mark {{ $assessment->passing_score }}%
                                 </p>
                             </div>
-                            <form method="POST" action="{{ route('student.assessments.start', $assessment) }}">
-                                @csrf
-                                <button type="submit"
-                                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
-                                    <x-heroicon-o-play-circle class="h-5 w-5"/>
-                                    Take Assessment
-                                </button>
-                            </form>
+                            <a
+                                href="{{ route('student.assessments.take', $assessment) }}"
+                                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                                <x-heroicon-o-play-circle class="h-5 w-5"/>
+                                Take Assessment
+                            </a>
                         </li>
                     @endforeach
                 </ul>

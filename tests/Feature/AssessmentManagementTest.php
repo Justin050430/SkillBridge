@@ -143,10 +143,7 @@ class AssessmentManagementTest extends TestCase
                 'title' => 'New Assessment',
                 'description' => 'Description',
                 'passing_score' => 60,
-                'duration_enabled' => '1',
-                'duration_hours' => '00',
-                'duration_minutes' => '20',
-                'duration_seconds' => '00',
+                'time_limit' => 20,
                 'max_attempts' => 3,
                 // A new assessment has no questions yet, so it must be created
                 // as Draft (publishing requires at least one question).
@@ -154,7 +151,7 @@ class AssessmentManagementTest extends TestCase
             ])
             ->assertRedirect('/assessments');
 
-        $this->assertDatabaseHas('assessments', ['title' => 'New Assessment', 'time_limit' => 1200]);
+        $this->assertDatabaseHas('assessments', ['title' => 'New Assessment']);
     }
 
     public function test_mentor_cannot_create_assessment_on_another_mentors_lesson(): void

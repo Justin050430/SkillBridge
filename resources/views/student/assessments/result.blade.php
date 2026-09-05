@@ -18,22 +18,13 @@
             @endif
 
             <h3 class="mt-4 text-2xl font-bold {{ $attempt->is_passed ? 'text-emerald-800' : 'text-red-800' }}">
-                {{ $attempt->hasExpired() ? 'Time is up — attempt ended' : ($attempt->is_passed ? 'Congratulations, you passed!' : 'Not passed this time') }}
+                {{ $attempt->is_passed ? 'Congratulations, you passed!' : 'Not passed this time' }}
             </h3>
 
-            @if($attempt->hasExpired())
-            <p class="mt-2 text-red-700">
-                Attempt #{{ $attempt->attempt_number }} timed out. Answers were not submitted or graded. This counts as one attempt.
-            </p>
-            @else
             <p class="mt-2 {{ $attempt->is_passed ? 'text-emerald-700' : 'text-red-700' }}">
                 You scored <strong>{{ $attempt->percentage }}%</strong>
                 ({{ $attempt->score }} / {{ $assessment->questions->sum('marks') }} marks) —
                 passing score is {{ $assessment->passing_score }}%.
-            </p>
-            @endif
-            <p class="mt-2 text-sm text-slate-600">
-                {{ $remainingAttempts === null ? 'No attempt limit.' : $remainingAttempts.' new attempt(s) remaining.' }}
             </p>
 
             <div class="mt-6 flex flex-wrap justify-center gap-3">
@@ -46,24 +37,19 @@
 
                 </a>
 
-                @if($canTake)
-                <form method="POST" action="{{ route('student.assessments.start', $assessment) }}">
-                    @csrf
-                    <button type="submit"
-                        class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition hover:bg-indigo-700">
-                        <x-heroicon-o-arrow-path class="h-5 w-5"/>
-                        {{ $hasInProgress ? 'Resume Assessment' : 'Retake' }}
-                    </button>
-                </form>
-                @else
-                    <span class="rounded-xl bg-slate-100 px-5 py-2.5 text-slate-500">No attempts left</span>
-                @endif
+                <a
+                    href="{{ route('student.assessments.take', $assessment) }}"
+                    class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition hover:bg-indigo-700">
+
+                    <x-heroicon-o-arrow-path class="h-5 w-5"/>
+                    Retake
+
+                </a>
 
             </div>
 
         </div>
 
-        @if(! $attempt->hasExpired())
         {{-- Per-question breakdown --}}
         <h3 class="text-xl font-semibold text-slate-800">
             Answer Review
@@ -146,8 +132,6 @@
             @endforeach
 
         </div>
-
-        @endif
 
         {{-- Consumed from the Course module's web service --}}
         @if(!empty($relatedCourses))

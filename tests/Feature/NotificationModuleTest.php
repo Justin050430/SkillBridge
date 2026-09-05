@@ -13,7 +13,6 @@
 namespace Tests\Feature;
 
 use App\Models\Assessment;
-use App\Models\AssessmentAttempt;
 use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
@@ -106,9 +105,9 @@ class NotificationModuleTest extends TestCase
             'order_number' => 1,
         ]);
 
-        $this->actingAs($student)->startAssessment($assessment);
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1, 'answers' => []]);
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []]);
     }
 
     // ---- Command pattern execution ----
@@ -138,7 +137,7 @@ class NotificationModuleTest extends TestCase
         $enrollment = $this->enroll($student, $course);
         $assessment = $this->makeAssessment($this->makeLesson($course));
 
-        $attempt = AssessmentAttempt::create([
+        $attempt = \App\Models\AssessmentAttempt::create([
             'enrollment_id' => $enrollment->id,
             'assessment_id' => $assessment->id,
             'attempt_number' => 1,

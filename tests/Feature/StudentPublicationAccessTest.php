@@ -19,6 +19,7 @@ use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
+use App\Models\Question;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -124,7 +125,7 @@ class StudentPublicationAccessTest extends TestCase
             ->assertOk()
             ->assertSee($assessment->title);
 
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertOk();
     }
 
@@ -149,7 +150,7 @@ class StudentPublicationAccessTest extends TestCase
             ->assertOk()
             ->assertDontSee($assessment->title);
 
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertNotFound();
     }
 
@@ -174,7 +175,7 @@ class StudentPublicationAccessTest extends TestCase
             ->assertOk()
             ->assertDontSee($assessment->title);
 
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertNotFound();
     }
 
@@ -197,7 +198,7 @@ class StudentPublicationAccessTest extends TestCase
             ->assertOk()
             ->assertDontSee($assessment->title);
 
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertNotFound();
     }
 
@@ -214,10 +215,10 @@ class StudentPublicationAccessTest extends TestCase
 
         // take, submit and result are all rejected for an assessment whose
         // parent lesson is Draft - the student cannot bypass the UI.
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertNotFound();
 
-        $this->actingAs($student)->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1, 'answers' => []])
+        $this->actingAs($student)->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []])
             ->assertNotFound();
 
         $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/result')

@@ -207,9 +207,9 @@ class WebServiceTest extends TestCase
             'order_number' => 1,
         ]);
 
-        $this->actingAs($student)->startAssessment($assessment);
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1, 'answers' => []]);
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []]);
 
         $this->actingAs($student)
             ->get('/student/assessments/'.$assessment->slug.'/result')

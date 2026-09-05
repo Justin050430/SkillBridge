@@ -179,7 +179,7 @@ class AssessmentPublicationRuleTest extends TestCase
             ->assertOk()
             ->assertSee($assessment->title);
 
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertOk();
     }
 
@@ -208,10 +208,10 @@ class AssessmentPublicationRuleTest extends TestCase
         $assessment = $this->makeAssessment($this->makeLesson($course), 'Published');
         $this->enroll($student, $course);
 
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertNotFound();
 
-        $this->actingAs($student)->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1, 'answers' => []])
+        $this->actingAs($student)->post('/student/assessments/'.$assessment->slug.'/submit', ['answers' => []])
             ->assertNotFound();
     }
 
@@ -246,7 +246,7 @@ class AssessmentPublicationRuleTest extends TestCase
             ->assertOk()
             ->assertDontSee($assessment->title);
 
-        $this->actingAs($student)->startAssessment($assessment)
+        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take')
             ->assertNotFound();
     }
 
