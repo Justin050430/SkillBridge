@@ -16,6 +16,7 @@ namespace App\Services;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Services\Concerns\InternalHttp;
+use App\Support\ServiceExchangeLog;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -32,12 +33,14 @@ class EnrollmentStatsClient
      */
     public function userStats(int $userId): ?array
     {
+        $requestId = (string) Str::uuid();
+        $response = null;
         try {
             $response = $this->internalHttp()->get(
                 route('api.enrollments.user.stats', ['user' => $userId]),
                 [
                     'timestamp' => now()->toIso8601String(),
-                    'requestId' => (string) Str::uuid(),
+                    'requestId' => $requestId,
                 ]
             );
 
@@ -47,8 +50,11 @@ class EnrollmentStatsClient
                 throw new \RuntimeException('Enrollment stats API returned a non-success status.');
             }
 
+            ServiceExchangeLog::record('api.enrollments.user.stats', $requestId, $response, false);
+
             return $payload['data'] ?? null;
         } catch (Throwable $exception) {
+            ServiceExchangeLog::record('api.enrollments.user.stats', $requestId, $response, true);
             Log::warning('Enrollment stats API consumption failed; falling back to local computation', [
                 'timestamp' => now()->toIso8601String(),
                 'endpoint' => 'api.enrollments.user.stats',

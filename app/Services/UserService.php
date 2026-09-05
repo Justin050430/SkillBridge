@@ -35,10 +35,7 @@ class UserService
     {
         return $this->adminAccountFactory->createAccount($data);
     }
-
-    /**
-     * Create an account selected by an Administrator through the user form.
-     */
+    
     public function createUser(array $data): User
     {
         $roleName = Role::query()

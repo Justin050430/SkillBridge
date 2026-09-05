@@ -52,6 +52,15 @@ return [
 
     'channels' => [
 
+        'web_services' => [
+            'driver' => 'daily',
+            'path' => env('WEB_SERVICE_LOG_PATH', storage_path('logs/web-services.log')),
+            'formatter' => Monolog\Formatter\JsonFormatter::class,
+            'level' => 'info',
+            'days' => 7,
+            'replace_placeholders' => true,
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),

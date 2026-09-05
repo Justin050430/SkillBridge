@@ -18,7 +18,9 @@
 namespace App\Services\Concerns;
 
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
+use LogicException;
 
 trait InternalHttp
 {
@@ -32,7 +34,20 @@ trait InternalHttp
      */
     protected function internalHttp(): PendingRequest
     {
-        $http = Http::timeout(5)->acceptJson();
+        $http = Http::timeout(5)->acceptJson()->withoutRedirecting();
+
+        // Credentials must only travel to the configured application origin.
+        $origin = static fn (string $url): array => [
+            strtolower((string) parse_url($url, PHP_URL_SCHEME)),
+            strtolower((string) parse_url($url, PHP_URL_HOST)),
+            parse_url($url, PHP_URL_PORT) ?: (strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https' ? 443 : 80),
+        ];
+        $expectedOrigin = $origin((string) config('app.url'));
+        $http->beforeSending(function (ClientRequest $outgoing) use ($origin, $expectedOrigin): void {
+            if ($origin($outgoing->url()) !== $expectedOrigin) {
+                throw new LogicException('Internal web services must use the configured application origin.');
+            }
+        });
 
         $request = request();
 
@@ -42,12 +57,15 @@ trait InternalHttp
 
         try {
             $sessionName = session()->getName();
-            $sessionValue = (string) $request->cookie($sessionName, '');
-
-            $http = $http->withHeaders([
-                'Cookie' => $sessionName.'='.$sessionValue,
-                'X-CSRF-TOKEN' => session()->token(),
-            ]);
+            // EncryptCookies has already decrypted request()->cookie(). Keep
+            // the original wire value from the header for the next HTTP hop.
+            $cookies = (string) $request->headers->get('Cookie', '');
+            if (preg_match('/(?:^|;\s*)'.preg_quote($sessionName, '/').'=([^;]*)/', $cookies, $matches)) {
+                $http = $http->withHeaders([
+                    'Cookie' => $sessionName.'='.$matches[1],
+                    'X-CSRF-TOKEN' => session()->token(),
+                ]);
+            }
         } catch (\Throwable $exception) {
             // No usable session context - call without credentials.
         }

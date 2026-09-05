@@ -15,6 +15,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Services\Concerns\InternalHttp;
+use App\Support\ServiceExchangeLog;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -31,12 +32,14 @@ class UserProfileClient
      */
     public function profile(int $userId): ?array
     {
+        $requestId = (string) Str::uuid();
+        $response = null;
         try {
             $response = $this->internalHttp()->get(
                 route('api.users.profile', ['user' => $userId]),
                 [
                     'timestamp' => now()->toIso8601String(),
-                    'requestId' => (string) Str::uuid(),
+                    'requestId' => $requestId,
                 ]
             );
 
@@ -46,8 +49,11 @@ class UserProfileClient
                 throw new \RuntimeException('User profile API returned a non-success status.');
             }
 
+            ServiceExchangeLog::record('api.users.profile', $requestId, $response, false);
+
             return $payload['data'] ?? null;
         } catch (Throwable $exception) {
+            ServiceExchangeLog::record('api.users.profile', $requestId, $response, true);
             Log::warning('User profile API consumption failed; falling back to local lookup', [
                 'timestamp' => now()->toIso8601String(),
                 'endpoint' => 'api.users.profile',
