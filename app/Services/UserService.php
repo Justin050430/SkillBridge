@@ -6,33 +6,34 @@
 
 namespace App\Services;
 
-use App\Factories\UserAccountFactory;
+use App\Factories\AdminAccountFactory;
+use App\Factories\MentorAccountFactory;
+use App\Factories\StudentAccountFactory;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 class UserService
 {
-    protected UserAccountFactory $userAccountFactory;
-
-    public function __construct(UserAccountFactory $userAccountFactory)
-    {
-        $this->userAccountFactory = $userAccountFactory;
-    }
+    public function __construct(
+        protected StudentAccountFactory $studentAccountFactory,
+        protected MentorAccountFactory $mentorAccountFactory,
+        protected AdminAccountFactory $adminAccountFactory,
+    ) {}
 
     public function registerStudent(array $data): User
     {
-        return $this->userAccountFactory->createStudent($data);
+        return $this->studentAccountFactory->createAccount($data);
     }
 
     public function createMentor(array $data): User
     {
-        return $this->userAccountFactory->createMentor($data);
+        return $this->mentorAccountFactory->createAccount($data);
     }
 
     public function createAdmin(array $data): User
     {
-        return $this->userAccountFactory->createAdmin($data);
+        return $this->adminAccountFactory->createAccount($data);
     }
 
     /**
