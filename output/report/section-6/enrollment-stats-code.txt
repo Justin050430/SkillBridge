@@ -1,0 +1,34 @@
+public function userStats(int $userId): ?array
+    {
+        $requestId = (string) Str::uuid();
+        $response = null;
+        try {
+            $response = $this->internalHttp()->get(
+                route('api.enrollments.user.stats', ['user' => $userId]),
+                [
+                    'timestamp' => now()->toIso8601String(),
+                    'requestId' => $requestId,
+                ]
+            );
+
+            $payload = $response->json();
+
+            if (! $response->ok() || ($payload['status'] ?? '') !== 'S') {
+                throw new \RuntimeException('Enrollment stats API returned a non-success status.');
+            }
+
+            ServiceExchangeLog::record('api.enrollments.user.stats', $requestId, $response, false);
+
+            return $payload['data'] ?? null;
+        } catch (Throwable $exception) {
+            ServiceExchangeLog::record('api.enrollments.user.stats', $requestId, $response, true);
+            Log::warning('Enrollment stats API consumption failed; falling back to local computation', [
+                'timestamp' => now()->toIso8601String(),
+                'endpoint' => 'api.enrollments.user.stats',
+                'user_id' => $userId,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return $this->fallbackUserStats($userId);
+        }
+    }

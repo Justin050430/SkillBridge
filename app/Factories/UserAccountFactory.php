@@ -10,34 +10,30 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class UserAccountFactory
+abstract class UserAccountFactory
 {
-    public function createStudent(array $data): User
+    final public function createAccount(array $data): User
     {
-        return $this->createAccount($data, 'Student');
+        $user = $this->makeUser($data);
+        $user->save();
+
+        return $user;
     }
 
-    public function createMentor(array $data): User
-    {
-        return $this->createAccount($data, 'Mentor');
-    }
-
-    public function createAdmin(array $data): User
-    {
-        return $this->createAccount($data, 'Admin');
-    }
+    /** Factory Method: concrete creators construct the account for their role. */
+    abstract protected function makeUser(array $data): User;
 
     /**
-     * Build an account using the database role that matches the requested
-     * account type. Looking the role up by name avoids depending on fixed IDs.
+     * Share field mapping and hashing between creators without fixed role IDs.
+     * The returned model is saved by createAccount().
      */
-    protected function createAccount(array $data, string $roleName): User
+    protected function buildUser(array $data, string $roleName): User
     {
         $role = Role::query()
             ->where('role_name', $roleName)
             ->firstOrFail();
 
-        return User::create([
+        return new User([
             'role_id' => $role->id,
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],

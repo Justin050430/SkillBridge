@@ -30,7 +30,16 @@ class Ifa
      */
     public static function requestId(Request $request): string
     {
-        return (string) $request->input('requestId', Str::uuid());
+        if (! $request->attributes->has('_ifa_request_id')) {
+            $supplied = $request->input('requestId');
+            $request->attributes->set('_ifa_request_id',
+                (is_string($supplied) || is_int($supplied)) && trim((string) $supplied) !== ''
+                    ? (string) $supplied
+                    : (string) Str::uuid()
+            );
+        }
+
+        return $request->attributes->get('_ifa_request_id');
     }
 
     /**

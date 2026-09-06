@@ -71,21 +71,36 @@
         <x-input-error :messages="$errors->get('passing_score')" class="mt-2" />
     </div>
 
-    <div>
-        <x-input-label for="time_limit" :value="__('Time Limit (minutes, optional)')" />
-
-        <x-text-input
-            id="time_limit"
-            name="time_limit"
-            type="number"
-            min="1"
-            max="600"
-            class="block mt-1 w-full"
-            :value="old('time_limit', $assessment->time_limit ?? '')"
-            placeholder="e.g. 30" />
-
+    <fieldset x-data="{ durationEnabled: {{ old('duration_enabled', ($assessment->time_limit ?? 0) > 0) ? 'true' : 'false' }} }">
+        <legend class="text-sm font-medium text-gray-700">Assessment duration</legend>
+        @php
+            $duration = $assessment->time_limit ?? 0;
+        @endphp
+        <input type="hidden" name="duration_enabled" value="0">
+        <label class="mt-2 flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" name="duration_enabled" value="1"
+                x-model="durationEnabled"
+                @checked(old('duration_enabled', $duration > 0)) class="rounded border-gray-300 text-indigo-600">
+            Set a time limit
+        </label>
+        <div class="mt-3 grid grid-cols-3 gap-2">
+            @foreach(['hours' => [10, intdiv($duration, 3600)], 'minutes' => [59, intdiv($duration % 3600, 60)], 'seconds' => [59, $duration % 60]] as $part => [$maximum, $value])
+                @php
+                    $partValue = old('duration_'.$part, $value);
+                    $partValue = is_scalar($partValue) ? $partValue : '';
+                @endphp
+                <div>
+                    <x-input-label :for="'duration_'.$part" :value="ucfirst($part)" />
+                    <input id="duration_{{ $part }}" name="duration_{{ $part }}" type="number" min="0" max="{{ $maximum }}" step="1"
+                        :disabled="!durationEnabled" value="{{ $partValue }}" class="mt-1 w-full rounded-lg border-gray-300 text-center tabular-nums disabled:bg-slate-100 disabled:text-slate-400">
+                    <x-input-error :messages="$errors->get('duration_'.$part)" class="mt-2" />
+                </div>
+            @endforeach
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Unchecked means no time limit. Timed assessments allow 1 second to 10 hours. Changes apply to new attempts.</p>
+        <x-input-error :messages="$errors->get('duration_enabled')" class="mt-2" />
         <x-input-error :messages="$errors->get('time_limit')" class="mt-2" />
-    </div>
+    </fieldset>
 
     <div>
         <x-input-label for="max_attempts" :value="__('Max Attempts (optional)')" />

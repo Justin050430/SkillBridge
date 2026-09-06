@@ -292,7 +292,7 @@ class DemoDataSeeder extends Seeder
             'title' => "{$course->title} - Final Quiz",
             'description' => 'A short quiz to confirm your understanding of the key concepts in this course.',
             'passing_score' => 50,
-            'time_limit' => 15,
+            'time_limit' => 15 * 60,
             'max_attempts' => 3,
             'status' => 'Published',
         ]);

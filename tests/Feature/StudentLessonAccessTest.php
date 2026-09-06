@@ -20,10 +20,13 @@ use App\Models\Category;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
+use App\Models\LessonResource;
+use App\Models\Progress;
 use App\Models\Question;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -161,7 +164,7 @@ class StudentLessonAccessTest extends TestCase
 
         // Mark the lesson complete so a status badge shows.
         $enrollment = $this->activeEnrollment($student, $course);
-        \App\Models\Progress::create([
+        Progress::create([
             'enrollment_id' => $enrollment->id,
             'lesson_id' => $lesson->id,
             'status' => 'Completed',
@@ -192,7 +195,7 @@ class StudentLessonAccessTest extends TestCase
         $this->assertSame(0, AssessmentAttempt::where('enrollment_id', $enrollment->id)->count());
 
         $this->actingAs($student)
-            ->get("/student/assessments/{$assessment->slug}/take")
+            ->startAssessment($assessment)
             ->assertOk()
             ->assertSee($assessment->title);
 
@@ -248,7 +251,7 @@ class StudentLessonAccessTest extends TestCase
         // Taking the assessment again creates a NEW attempt under the new
         // enrollment (not resuming the dropped one).
         $this->actingAs($student)
-            ->get("/student/assessments/{$assessment->slug}/take")
+            ->startAssessment($assessment)
             ->assertOk();
 
         $newAttempt = AssessmentAttempt::where('enrollment_id', $newEnrollment->id)
@@ -270,7 +273,7 @@ class StudentLessonAccessTest extends TestCase
         $this->makeQuestion($assessment);
 
         $this->actingAs($student)
-            ->get("/student/assessments/{$assessment->slug}/take")
+            ->startAssessment($assessment)
             ->assertForbidden();
     }
 
@@ -288,7 +291,7 @@ class StudentLessonAccessTest extends TestCase
             'content' => '<h2>Intro</h2><p>Body</p>',
         ]);
 
-        \App\Models\LessonResource::create([
+        LessonResource::create([
             'lesson_id' => $lesson->id,
             'type' => 'Link',
             'title' => 'OWASP Guide',
@@ -321,7 +324,7 @@ class StudentLessonAccessTest extends TestCase
 
         $lesson = $this->makeLesson($course);
 
-        \App\Models\LessonResource::create([
+        LessonResource::create([
             'lesson_id' => $lesson->id,
             'type' => 'File',
             'title' => 'Notes',
@@ -333,7 +336,7 @@ class StudentLessonAccessTest extends TestCase
         ]);
 
         $queries = [];
-        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queries) {
+        DB::listen(function ($query) use (&$queries) {
             $queries[] = $query->sql;
         });
 

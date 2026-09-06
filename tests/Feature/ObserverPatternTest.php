@@ -130,9 +130,9 @@ class ObserverPatternTest extends TestCase
 
         $question = $this->makeQuestion($assessment, ['correct_answer' => 'A', 'marks' => 1]);
 
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
+        $this->actingAs($student)->startAssessment($assessment);
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->slug.'/submit', [
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1,
                 'answers' => [$question->id => 'A'],
             ])
             ->assertRedirect('/student/assessments/'.$assessment->slug.'/result');
@@ -163,9 +163,9 @@ class ObserverPatternTest extends TestCase
 
         $question = $this->makeQuestion($assessment, ['correct_answer' => 'A', 'marks' => 1]);
 
-        $this->actingAs($student)->get('/student/assessments/'.$assessment->slug.'/take');
+        $this->actingAs($student)->startAssessment($assessment);
         $this->actingAs($student)
-            ->post('/student/assessments/'.$assessment->slug.'/submit', [
+            ->post('/student/assessments/'.$assessment->slug.'/submit', ['attempt_id' => $assessment->attempts()->latest('id')->value('id') ?? 1,
                 'answers' => [$question->id => 'B'], // wrong -> 0% -> failed
             ])
             ->assertRedirect('/student/assessments/'.$assessment->slug.'/result');

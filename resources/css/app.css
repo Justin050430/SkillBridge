@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes assessment-warning {
+    0%, 100% { background-color: #fef2f2; }
+    50% { background-color: #fecaca; box-shadow: 0 0 0 5px rgb(220 38 38 / 25%); }
+}
+.assessment-timer-warning { animation: assessment-warning 1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+    .assessment-timer-warning { animation: none; background-color: #fee2e2; }
+}
+
 /* Hide Alpine-managed regions until Alpine is initialised to prevent a
    flash of unstyled / incorrectly-visible content. */
 [x-cloak] {

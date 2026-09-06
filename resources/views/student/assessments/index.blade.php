@@ -8,6 +8,10 @@
 
     <div class="max-w-7xl mx-auto p-6 space-y-6">
 
+        @if(session('error'))
+            <div role="alert" class="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">{{ session('error') }}</div>
+        @endif
+
         @forelse($summaries as $summary)
 
         @php
@@ -80,17 +84,17 @@
 
                 @if($summary->canTake)
 
-                    <a
-                        href="{{ route('student.assessments.take', $assessment) }}"
-                        class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition hover:bg-indigo-700">
+                    <form method="POST" action="{{ route('student.assessments.start', $assessment) }}">
+                        @csrf
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition hover:bg-indigo-700">
+                            <x-heroicon-o-play-circle class="h-5 w-5"/>
 
-                        <x-heroicon-o-play-circle class="h-5 w-5"/>
-
-                        {{ $summary->hasInProgress
+                            {{ $summary->hasInProgress
                             ? 'Resume Assessment'
                             : ($summary->attemptCount > 0 ? 'Retake Assessment' : 'Start Assessment') }}
-
-                    </a>
+                        </button>
+                    </form>
 
                 @else
 

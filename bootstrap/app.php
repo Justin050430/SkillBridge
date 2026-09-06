@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\SecurityService;
+use App\Support\ApiExceptionResponse;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -42,6 +43,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Secure coding: never disclose internal details in error responses.
         $exceptions->render(function (Throwable $exception, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiExceptionResponse::render($exception, $request);
+            }
+
             // Authentication failures are handled by the framework (401/redirect).
             if ($exception instanceof AuthenticationException) {
                 return;

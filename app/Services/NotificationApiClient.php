@@ -16,7 +16,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Services\Concerns\InternalHttp;
-use App\Services\NotificationService;
+use App\Support\ServiceExchangeLog;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -40,12 +40,14 @@ class NotificationApiClient
         ?string $relatedType = null,
         ?int $relatedId = null
     ): bool {
+        $requestId = (string) Str::uuid();
+        $response = null;
         try {
             $response = $this->internalHttp()
                 ->asJson()
                 ->post(route('api.notifications.store'), [
                     'timestamp' => now()->toIso8601String(),
-                    'requestId' => (string) Str::uuid(),
+                    'requestId' => $requestId,
                     'user_id' => $userId,
                     'title' => $title,
                     'message' => $message,
@@ -60,8 +62,11 @@ class NotificationApiClient
                 throw new \RuntimeException('Notification API returned a non-success status.');
             }
 
+            ServiceExchangeLog::record('api.notifications.store', $requestId, $response, false);
+
             return true;
         } catch (Throwable $exception) {
+            ServiceExchangeLog::record('api.notifications.store', $requestId, $response, true);
             Log::warning('Notification API consumption failed; falling back to local notification', [
                 'timestamp' => now()->toIso8601String(),
                 'endpoint' => 'api.notifications.store',

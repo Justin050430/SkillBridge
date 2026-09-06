@@ -23,6 +23,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -75,6 +76,10 @@ class EnsureSingleActiveSession
 
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+
+            if ($request->is('api/*')) {
+                throw new AuthenticationException;
+            }
 
             return redirect()->route('login');
         }
