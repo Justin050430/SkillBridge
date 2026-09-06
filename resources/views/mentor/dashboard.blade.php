@@ -275,12 +275,12 @@
 
                     <div>
                         <p class="text-slate-500">Avg score</p>
-                        <p class="font-semibold" x-text="stat.average_score + '%'"></p>
+                        <p class="font-semibold" x-text="stat.average_score === null ? '—' : stat.average_score + '%'"></p>
                     </div>
 
                     <div>
                         <p class="text-slate-500">Pass rate</p>
-                        <p class="font-semibold" x-text="stat.pass_rate + '%'"></p>
+                        <p class="font-semibold" x-text="stat.pass_rate === null ? '—' : stat.pass_rate + '%'"></p>
                     </div>
 
                     <div>
