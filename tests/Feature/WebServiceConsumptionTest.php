@@ -228,8 +228,12 @@ class WebServiceConsumptionTest extends TestCase
 
     public function test_course_api_client_sends_ifa_request_fields(): void
     {
+        // The trailing "*" is required: the client appends
+        // ?timestamp=...&requestId=... to the URL, so a pattern without it would
+        // NOT intercept the request and would leak a real HTTP call to the
+        // network during the test.
         Http::fake([
-            '*/api/courses/published' => Http::response([
+            '*/api/courses/published*' => Http::response([
                 'status' => 'S',
                 'requestId' => 'req-5',
                 'timestamp' => now()->toIso8601String(),
@@ -240,9 +244,16 @@ class WebServiceConsumptionTest extends TestCase
         app(CourseApiClient::class)->publishedCourses();
 
         Http::assertSent(function ($request) {
-            return str_contains($request->url(), '/api/courses/published')
-                && str_contains($request->url(), 'timestamp=')
-                && str_contains($request->url(), 'requestId=');
+            $query = $request->data();
+
+            return $request->method() === 'GET'
+                && str_contains($request->url(), '/api/courses/published')
+                && isset($query['timestamp'])
+                && is_string($query['timestamp'])
+                && trim($query['timestamp']) !== ''
+                && isset($query['requestId'])
+                && is_string($query['requestId'])
+                && trim($query['requestId']) !== '';
         });
     }
 
@@ -394,21 +405,48 @@ class WebServiceConsumptionTest extends TestCase
         ]);
     }
 
-    public function test_course_api_client_falls_back_to_local_catalogue(): void
+    // Unlike the other modules' clients above, CourseApiClient deliberately has
+    // NO local database fallback: the Assessment & Progress module must genuinely
+    // depend on the Course Catalogue web service. On any failure it returns an
+    // empty array so the consumer renders gracefully without fake data.
+
+    public function test_course_api_client_returns_empty_array_on_http_error(): void
     {
+        // A real published course exists locally - if the client silently fell
+        // back to the database, this test would surface that course.
         Http::fake([
             '*/api/courses/published*' => Http::response(['status' => 'E', 'timestamp' => now()->toIso8601String()], 500),
         ]);
 
         $mentor = $this->makeUser('Mentor', 'mentor@test.com');
-        $course = $this->makeCourse($mentor);
+        $this->makeCourse($mentor);
 
         $courses = app(CourseApiClient::class)->publishedCourses();
 
-        $this->assertNotEmpty($courses);
-        $this->assertSame($course->title, $courses[0]['title']);
-        $this->assertArrayHasKey('category', $courses[0]);
-        $this->assertArrayHasKey('mentor', $courses[0]);
+        $this->assertSame([], $courses);
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/api/courses/published'));
+    }
+
+    public function test_course_api_client_returns_empty_array_on_ifa_failure(): void
+    {
+        // A non-success IFA status is rejected even when the HTTP call itself
+        // succeeded (HTTP 200 but status !== "S").
+        Http::fake([
+            '*/api/courses/published*' => Http::response([
+                'status' => 'F',
+                'requestId' => 'req-fail',
+                'timestamp' => now()->toIso8601String(),
+                'message' => 'Catalogue temporarily unavailable.',
+            ], 200),
+        ]);
+
+        $mentor = $this->makeUser('Mentor', 'mentor@test.com');
+        $this->makeCourse($mentor);
+
+        $courses = app(CourseApiClient::class)->publishedCourses();
+
+        $this->assertSame([], $courses);
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/api/courses/published'));
     }
 
     public function test_admin_user_edit_page_shows_real_data_when_service_unavailable(): void

@@ -149,7 +149,11 @@
 
         @endif
 
-        {{-- Consumed from the Course module's web service --}}
+        {{-- Consumed from the Course module's web service (CourseApiClient).
+             Shown only when the service returned courses: on failure the client
+             returns an empty array, so this whole section (including the label
+             below) is hidden and no data is claimed to come from the web
+             service. --}}
         @if(!empty($relatedCourses))
 
         <div class="pt-4">
