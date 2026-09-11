@@ -44,9 +44,9 @@ class LoginRequest extends FormRequest
      *
      * @throws ValidationException
      */
-    public function authenticate(): void
+    //public function authenticate(): void
     {
-        $this->ensureIsNotRateLimited();
+        //$this->ensureIsNotRateLimited();
 
         $credentials = $this->only('email', 'password') + ['status' => 'Active'];
 
