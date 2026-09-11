@@ -21,6 +21,9 @@ use App\Http\Controllers\Student\AssessmentController as StudentAssessmentContro
 use App\Http\Controllers\Student\LessonController as StudentLessonController;
 use App\Http\Controllers\Student\ProgressController;
 
+
+use App\Models\User;
+
 Route::get('/', function () {
     return view('landing');
 });
@@ -28,6 +31,10 @@ Route::get('/', function () {
 // Central post-login destination that dispatches to the role-specific dashboard.
 Route::middleware('auth')->get('/dashboard', function () {
     $user = Auth::user();
+     //Insecure demo
+     if (! $user instanceof User) {
+        abort(401);
+    }
 
     $route = match (true) {
         $user->isAdmin() => 'admin.dashboard',
@@ -175,8 +182,10 @@ Route::middleware(['auth', 'role:Admin,Mentor'])->group(function () {
 });
 
 // Enrollment management - Admin (full oversight) + Mentor (own courses only).
-Route::middleware(['auth', 'role:Admin,Mentor'])->group(function () {
-
+//Secure Version threat 2
+//Route::middleware(['auth', 'role:Admin,Mentor'])->group(function () {
+//Insecure version: Threat 2
+Route::middleware(['auth'])->group(function () {
     Route::get('/enrollments', [EnrollmentController::class, 'index'])
             ->name('enrollments.index');
 

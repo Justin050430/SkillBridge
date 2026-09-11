@@ -25,7 +25,7 @@ use App\Patterns\Strategy\EnrollmentProcessor;
 use App\Services\NotificationApiClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+//sdf/dsfsdfdsfdsfsdfdsfsdfsdf
 class EnrollmentController extends Controller
 {
     /**
@@ -87,7 +87,8 @@ class EnrollmentController extends Controller
      */
     public function complete(Enrollment $enrollment)
     {
-        $this->ensureAccessible($enrollment);
+        //Insecure demo : for threat 1
+        //$this->ensureAccessible($enrollment);
 
         app(EnrollmentProcessor::class)->process(
             app(CompleteEnrollmentStrategy::class),
@@ -109,7 +110,8 @@ class EnrollmentController extends Controller
      */
     public function drop(Enrollment $enrollment)
     {
-        $this->ensureAccessible($enrollment);
+        //Insecure demo for threat
+        //$this->ensureAccessible($enrollment);
 
         app(EnrollmentProcessor::class)->process(
             app(DropEnrollmentStrategy::class),
