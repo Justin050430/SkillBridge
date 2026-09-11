@@ -20,10 +20,13 @@ abstract class UserAccountFactory
         return $user;
     }
 
-
+    /** Factory Method: concrete creators construct the account for their role. */
     abstract protected function makeUser(array $data): User;
 
-   
+    /**
+     * Share field mapping and hashing between creators without fixed role IDs.
+     * The returned model is saved by createAccount().
+     */
     protected function buildUser(array $data, string $roleName): User
     {
         $role = Role::query()
