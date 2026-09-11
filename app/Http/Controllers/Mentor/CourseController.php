@@ -118,7 +118,7 @@ class CourseController extends Controller
     public function edit(Course $course)
     {
         // INSECURE: no ownership check
-        //$this->ensureAccessible($course);
+        $this->ensureAccessible($course);
 
         $categories = Category::orderBy('category_name')->get();
 
@@ -133,7 +133,7 @@ class CourseController extends Controller
     public function update(UpdateCourseRequest $request, Course $course)
     {
         // INSECURE: no ownership check
-        //$this->ensureAccessible($course);
+        $this->ensureAccessible($course);
 
         $course->update($request->validated());
 
