@@ -153,7 +153,9 @@ class LessonController extends Controller
 
         return response()->json([
             'status' => 'S',
-            'html' => ContentSanitizer::sanitize($request->input('content')),
+            //'html' => ContentSanitizer::sanitize($request->input('content')),
+                    // INSECURE: raw HTML returned
+        'html' => $request->input('content'),
         ]);
     }
 
@@ -185,7 +187,9 @@ class LessonController extends Controller
     {
         $data = $request->validated();
 
-        $data['content'] = ContentSanitizer::sanitize($data['content'] ?? '');
+        //$data['content'] = ContentSanitizer::sanitize($data['content'] ?? '');
+         // INSECURE: content is stored without sanitisation
+         $data['content'] = $data['content'] ?? '';
         $data['description'] = isset($data['description']) && trim($data['description']) !== ''
             ? trim($data['description'])
             : null;
