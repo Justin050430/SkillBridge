@@ -133,7 +133,7 @@ class CourseController extends Controller
     public function update(UpdateCourseRequest $request, Course $course)
     {
         // INSECURE: no ownership check
-       $this->ensureAccessible($course);
+       //$this->ensureAccessible($course);
 
         $course->update($request->validated());
 
@@ -153,7 +153,7 @@ class CourseController extends Controller
 
     public function destroy(Course $course)
     {
-        $this->ensureAccessible($course);
+        //$this->ensureAccessible($course);
 
         // Deletion guard: a course with lessons or enrollments (which chain to
         // assessments, attempts, answers, progress) must not be deleted so
