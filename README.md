@@ -105,6 +105,7 @@ validating production-specific locking; the default PHPUnit suite uses SQLite.
 ## Azure Deployment
 
 - GitHub Actions (`.github/workflows/main_skillbridge.yml`) builds PHP + frontend assets and deploys to Azure App Service.
+- Azure serves Laravel from `public/`, so domain-ownership files such as `.well-known/vulnscan.txt` must live under `public/.well-known/`, not the repository root.
 - Production database: Azure Database for MySQL (configured via App Service Application settings).
 - Live: https://skillbridge-cwcwcedpe7cdfqds.malaysiawest-01.azurewebsites.net
 
