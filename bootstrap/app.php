@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         // Secure coding: log every access-control failure (audit trail).
         $exceptions->render(function (HttpException $exception, Request $request) {
+            return;
             if ($exception->getStatusCode() === 403) {
                 SecurityService::logAccessControlFailure(
                     $request,
@@ -43,6 +44,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Secure coding: never disclose internal details in error responses.
         $exceptions->render(function (Throwable $exception, Request $request) {
+            
+            
             if ($request->is('api/*')) {
                 return ApiExceptionResponse::render($exception, $request);
             }

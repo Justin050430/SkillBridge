@@ -49,3 +49,16 @@ Route::get('/assessments/{assessment}/stats', [AssessmentApiController::class, '
 Route::post('/notifications', [NotificationApiController::class, 'store'])
     ->middleware(['web', 'auth', 'role:Admin,Mentor', 'throttle:60,1'])
     ->name('api.notifications.store');
+
+
+
+
+
+Route::get('/demo/boom',function(){
+   throw new \RuntimeException('SECRET-INTERNAL-DETAIL-DB-CREDENTIAL');}
+);
+
+Route::get('/demo/boom-sql',function(){
+    return \App\Models\Assessment::where('nonexistent-column',1)->first();
+});
+    

@@ -49,17 +49,6 @@ jobs:
         run: |
           test -f public/build/manifest.json && echo "manifest.json OK" || { echo "ERROR: public/build/manifest.json not generated"; exit 1; }
 
-      # ------------------------------------------------------------------
-      # Why this changed:
-      # The old workflow uploaded the ENTIRE workspace (`path: .`) as a GitHub
-      # Actions artifact (~16k files: vendor/ + node_modules/ + everything else).
-      # That exhausted the repository's artifact-storage quota ("Artifact
-      # storage quota has been hit"). This workflow now builds AND deploys in a
-      # single job and NEVER uploads an artifact, so the quota no longer applies.
-      # Only the files Laravel needs at runtime are copied into ./deploy
-      # (node_modules, .git, .github, tests and docs are excluded, while
-      # vendor/ and public/build/ are kept - both are required on Azure).
-      # ------------------------------------------------------------------
       - name: Prepare deployment package
         run: |
           mkdir -p deploy

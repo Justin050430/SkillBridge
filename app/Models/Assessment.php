@@ -28,15 +28,17 @@ class Assessment extends Model
         'status',
     ];
 
-    public function lesson(): BelongsTo
-    {
-        return $this->belongsTo(Lesson::class);
-    }
+    
 
     protected function casts(): array
     {
         // Durations are stored in seconds (null means untimed).
         return ['time_limit' => 'integer', 'max_attempts' => 'integer'];
+    }
+
+    public function lesson(): BelongsTo
+    {
+        return $this->belongsTo(Lesson::class);
     }
 
     public function questions(): HasMany
